@@ -1,0 +1,30 @@
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CreateQueuedActionsTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('queued_actions', function (Blueprint $table) {
+            // fields
+            $table->uuid('id');
+            $table->uuid('model_id');
+            $table->string('model_type');
+            $table->string('name');
+            $table->string('status', 16);
+            $table->text('output')->nullable();
+            $table->timestamps();
+            // indices
+            $table->primary('id');
+            $table->index(['model_type', 'model_id', 'status']);
+        });
+    }
+}

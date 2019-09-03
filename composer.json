@@ -1,0 +1,42 @@
+{
+    "name": "michielkempen/laravel-queueable-actions",
+    "keywords": [
+        "michielkempen",
+        "laravel-queueable-actions"
+    ],
+    "homepage": "https://github.com/michielkempen/laravel-queueable-actions",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Michiel Kempen",
+            "email": "kempenmichiel@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^7.2",
+        "laravel/framework": "~5.8",
+        "michielkempen/laravel-enum": "^0.0.1",
+        "michielkempen/laravel-uuid-model": "^0.1.1"
+    },
+    "require-dev": {
+        "orchestra/testbench": "~3.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "MichielKempen\\LaravelQueueableActions\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MichielKempen\\LaravelQueueableActions\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
