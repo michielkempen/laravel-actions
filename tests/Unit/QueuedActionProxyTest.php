@@ -57,13 +57,7 @@ class QueuedActionProxyTest extends TestCase
                 ->shouldReceive('createQueuedAction')
                 ->once()
                 ->with('TestModel', $model->id, 'simple', 'pending')
-                ->andReturn(QueuedAction::create([
-                    'model_id' => $model->id,
-                    'model_type' => 'TestModel',
-                    'name' => 'simple',
-                    'status' => 'pending',
-                    'output' => null,
-                ]));
+                ->andReturn(factory(QueuedAction::class)->create());
         });
 
         /** @var QueuedActionProxy $queuedActionProxy */
@@ -89,13 +83,7 @@ class QueuedActionProxyTest extends TestCase
                 ->shouldReceive('createQueuedAction')
                 ->once()
                 ->with('TestModel', $model->id, 'custom action name', 'pending')
-                ->andReturn(QueuedAction::create([
-                    'model_id' => $model->id,
-                    'model_type' => 'TestModel',
-                    'name' => 'custom action name',
-                    'status' => 'pending',
-                    'output' => null,
-                ]));
+                ->andReturn(factory(QueuedAction::class)->create());
         });
 
         /** @var QueuedActionProxy $queuedActionProxy */

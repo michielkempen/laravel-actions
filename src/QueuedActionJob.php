@@ -66,12 +66,12 @@ class QueuedActionJob implements ShouldQueue
      */
     public function handle()
     {
-        $this->updateQueuedAction(QueuedActionStatus::RUNNING);
+        $this->updateQueuedActionOrSkip(QueuedActionStatus::RUNNING);
 
         $action = app($this->actionClass);
         $action->execute(...$this->parameters);
 
-        $this->updateQueuedAction(QueuedActionStatus::SUCCEEDED);
+        $this->updateQueuedActionOrSkip(QueuedActionStatus::SUCCEEDED);
     }
 
     /**
@@ -79,7 +79,7 @@ class QueuedActionJob implements ShouldQueue
      */
     public function failed(PhpException $exception)
     {
-        $this->updateQueuedAction(QueuedActionStatus::FAILED, $exception->getMessage());
+        $this->updateQueuedActionOrSkip(QueuedActionStatus::FAILED, $exception->getMessage());
 
         $action = app($this->actionClass);
 
@@ -116,7 +116,7 @@ class QueuedActionJob implements ShouldQueue
      * @param string|null $output
      * @return void
      */
-    private function updateQueuedAction(string $status, string $output = null): void
+    private function updateQueuedActionOrSkip(string $status, string $output = null): void
     {
         if(! $this->queuedActionId) {
             return;

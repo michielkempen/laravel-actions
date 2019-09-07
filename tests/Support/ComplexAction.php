@@ -2,6 +2,7 @@
 
 namespace MichielKempen\LaravelQueueableActions\Tests\Support;
 
+use Exception as PhpException;
 use MichielKempen\LaravelQueueableActions\QueueableAction;
 use MichielKempen\LaravelQueueableActions\Tests\TestCase;
 
@@ -25,6 +26,14 @@ class ComplexAction
         file_put_contents(
             TestCase::LOG_PATH,
             $dataObject->foo.' '.$this->dependencyObject->bar
+        );
+    }
+
+    public function failed(PhpException $exception)
+    {
+        file_put_contents(
+            TestCase::LOG_PATH,
+            'whoops, action failed'
         );
     }
 }

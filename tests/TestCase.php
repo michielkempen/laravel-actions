@@ -2,6 +2,7 @@
 
 namespace MichielKempen\LaravelQueueableActions\Tests;
 
+use Illuminate\Database\Eloquent\Factory;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Application;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
@@ -27,6 +28,8 @@ class TestCase extends OrchestraTestCase
             $table->increments('id');
             $table->timestamps();
         });
+
+        $this->app->make(Factory::class)->load(__DIR__ . '/Support/factories');
 
         include_once __DIR__.'/../database/migrations/create_queued_actions_table.php.stub';
 
