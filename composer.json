@@ -10,12 +10,13 @@
         {
             "name": "Michiel Kempen",
             "email": "kempenmichiel@gmail.com",
+            "homepage": "https://michielkempen.com",
             "role": "Developer"
         }
     ],
     "require": {
         "php": "^7.2",
-        "laravel/framework": "~5.8",
+        "laravel/framework": "~5.8.0|^6.0",
         "michielkempen/laravel-enum": "^0.0.1",
         "michielkempen/laravel-uuid-model": "^0.1.1"
     },
@@ -32,11 +33,20 @@
             "MichielKempen\\LaravelQueueableActions\\Tests\\": "tests"
         }
     },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "MichielKempen\\QueueableActions\\QueueableActionsServiceProvider"
+            ]
+        }
+    },
     "scripts": {
         "test": "vendor/bin/phpunit",
         "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
     },
     "config": {
         "sort-packages": true
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
