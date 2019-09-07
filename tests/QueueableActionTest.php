@@ -11,6 +11,15 @@ use MichielKempen\LaravelQueueableActions\Tests\Support\SimpleAction;
 class QueueableActionTest extends TestCase
 {
     /** @test */
+    public function a_queued_action_job_can_be_retrieved()
+    {
+        $queuedActionJob = SimpleAction::job();
+
+        $this->assertInstanceOf(QueuedActionJob::class, $queuedActionJob);
+        $this->assertEquals(SimpleAction::class, $queuedActionJob->displayName());
+    }
+
+    /** @test */
     public function an_action_can_be_queued()
     {
         Queue::fake();

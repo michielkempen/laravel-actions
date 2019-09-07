@@ -1,9 +1,10 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Tests;
+namespace MichielKempen\LaravelQueueableActions\Tests\Database;
 
 use MichielKempen\LaravelQueueableActions\Database\QueuedAction;
 use MichielKempen\LaravelQueueableActions\QueuedActionStatus;
+use MichielKempen\LaravelQueueableActions\Tests\TestCase;
 
 class QueuedActionTest extends TestCase
 {
