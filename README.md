@@ -14,6 +14,20 @@ Add the package to the dependencies of your application
 composer require michielkempen/laravel-queueable-actions
 ```
 
+The package will automatically register itself.
+
+You can publish the migration with:
+
+```bash
+php artisan vendor:publish --provider="MichielKempen\QueueableActions\QueueableActionsServiceProvider" --tag="migrations"
+```
+
+After the migration has been published you can create the `queued_actions` by running the migrations:
+
+```bash
+php artisan migrate
+```
+
 ## Usage
 
 ```php
