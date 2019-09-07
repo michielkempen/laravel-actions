@@ -21,7 +21,10 @@ trait QueueableAction
     public function onQueue(?Model $model = null)
     {
         /** @var self $class */
-        $class = new QueuedActionProxy($this, $model);
+        $class = app()->makeWith(QueuedActionProxy::class, [
+            'action' => $this,
+            'model' => $model
+        ]);
 
         return $class;
     }

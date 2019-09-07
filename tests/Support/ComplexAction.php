@@ -13,6 +13,8 @@ class ComplexAction
 
     protected $dependencyObject;
 
+    public $name = 'custom action name';
+
     public function __construct()
     {
         $this->dependencyObject = app(DependencyObject::class);

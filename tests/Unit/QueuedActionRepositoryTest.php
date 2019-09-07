@@ -1,6 +1,6 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Tests\Database;
+namespace MichielKempen\LaravelQueueableActions\Tests\Unit;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use MichielKempen\LaravelQueueableActions\Database\QueuedAction;

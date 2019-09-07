@@ -1,11 +1,12 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Tests;
+namespace MichielKempen\LaravelQueueableActions\Tests\Unit;
 
 use MichielKempen\LaravelQueueableActions\QueuedActionJob;
 use MichielKempen\LaravelQueueableActions\Tests\Support\ComplexAction;
 use MichielKempen\LaravelQueueableActions\Tests\Support\DataObject;
 use MichielKempen\LaravelQueueableActions\Tests\Support\SimpleAction;
+use MichielKempen\LaravelQueueableActions\Tests\TestCase;
 
 class QueuedActionJobTest extends TestCase
 {

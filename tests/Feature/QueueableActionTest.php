@@ -1,24 +1,16 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Tests;
+namespace MichielKempen\LaravelQueueableActions\Tests\Feature;
 
 use Illuminate\Support\Facades\Queue;
 use MichielKempen\LaravelQueueableActions\QueuedActionJob;
 use MichielKempen\LaravelQueueableActions\Tests\Support\ComplexAction;
 use MichielKempen\LaravelQueueableActions\Tests\Support\DataObject;
 use MichielKempen\LaravelQueueableActions\Tests\Support\SimpleAction;
+use MichielKempen\LaravelQueueableActions\Tests\TestCase;
 
 class QueueableActionTest extends TestCase
 {
-    /** @test */
-    public function a_queued_action_job_can_be_retrieved()
-    {
-        $queuedActionJob = SimpleAction::job();
-
-        $this->assertInstanceOf(QueuedActionJob::class, $queuedActionJob);
-        $this->assertEquals(SimpleAction::class, $queuedActionJob->displayName());
-    }
-
     /** @test */
     public function an_action_can_be_queued()
     {

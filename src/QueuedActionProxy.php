@@ -18,7 +18,7 @@ class QueuedActionProxy
     /**
      * @var
      */
-    protected $action;
+    private $action;
 
     /**
      * @var string|null
@@ -31,15 +31,14 @@ class QueuedActionProxy
      */
     public function __construct($action, ?Model $model = null)
     {
-        $this->queuedActionRepository = app(QueuedActionRepository::class);
-
         $this->action = $action;
 
         if(is_null($model)) {
             return;
         }
 
-        $this->queuedActionId = $this->createQueuedAction($model)->getId();
+        $this->queuedActionRepository = app(QueuedActionRepository::class);
+        $this->queuedActionId = $this->createQueuedAction($model);
     }
 
     /**
@@ -52,10 +51,26 @@ class QueuedActionProxy
     }
 
     /**
-     * @param Model $model
-     * @return QueuedAction
+     * @return mixed
      */
-    private function createQueuedAction(Model $model): QueuedAction
+    public function getAction()
+    {
+        return $this->action;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getQueuedActionId(): ?string
+    {
+        return $this->queuedActionId;
+    }
+
+    /**
+     * @param Model $model
+     * @return string
+     */
+    private function createQueuedAction(Model $model): string
     {
         $modelType = class_basename($model);
         $modelId = $model->id;
@@ -65,7 +80,7 @@ class QueuedActionProxy
             $modelType, $modelId, $name, QueuedActionStatus::PENDING
         );
 
-        return $queuedAction;
+        return $queuedAction->getId();
     }
 
     /**

@@ -1,9 +1,10 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Tests;
+namespace MichielKempen\LaravelQueueableActions\Tests\Feature;
 
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
+use MichielKempen\LaravelQueueableActions\Tests\TestCase;
 
 class QueueableActionsServiceProviderTest extends TestCase
 {
