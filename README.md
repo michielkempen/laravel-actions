@@ -19,7 +19,7 @@ The package will automatically register itself.
 You can publish the migration with:
 
 ```bash
-php artisan vendor:publish --provider="MichielKempen\QueueableActions\QueueableActionsServiceProvider" --tag="migrations"
+php artisan vendor:publish --provider="MichielKempen\LaravelQueueableActions\QueueableActionsServiceProvider" --tag="migrations"
 ```
 
 After the migration has been published you can create the `queued_actions` by running the migrations:
