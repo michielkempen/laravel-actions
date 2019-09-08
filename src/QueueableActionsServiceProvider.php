@@ -1,6 +1,6 @@
 <?php
 
-namespace MichielKempen\QueueableActions;
+namespace MichielKempen\LaravelQueueableActions;
 
 use Illuminate\Support\ServiceProvider;
 

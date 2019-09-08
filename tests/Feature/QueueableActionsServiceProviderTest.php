@@ -12,7 +12,7 @@ class QueueableActionsServiceProviderTest extends TestCase
     public function it_can_create_the_queued_actions_table()
     {
         Artisan::call('vendor:publish', [
-            "--provider" => "MichielKempen\QueueableActions\QueueableActionsServiceProvider",
+            "--provider" => "MichielKempen\LaravelQueueableActions\QueueableActionsServiceProvider",
             "--tag" => "migrations"
         ]);
 
