@@ -62,6 +62,22 @@ class QueuedActionJob implements ShouldQueue
     }
 
     /**
+     * @return string
+     */
+    public function getActionClass(): string
+    {
+        return $this->actionClass;
+    }
+
+    /**
+     * @return array
+     */
+    public function getParameters(): array
+    {
+        return $this->parameters;
+    }
+
+    /**
      * ...
      */
     public function handle()
