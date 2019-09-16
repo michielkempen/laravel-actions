@@ -18,7 +18,7 @@ class QueuedActionJob implements ShouldQueue
     /**
      * @var QueuedActionRepository
      */
-    private $queuedActionRepository;
+    protected $queuedActionRepository;
 
     /**
      * @var string
@@ -36,6 +36,11 @@ class QueuedActionJob implements ShouldQueue
     protected $parameters;
 
     /**
+     * @var
+     */
+    protected $action;
+
+    /**
      * ActionJob constructor.
      *
      * @param $action
@@ -46,7 +51,7 @@ class QueuedActionJob implements ShouldQueue
     {
         $this->queuedActionRepository = app(QueuedActionRepository::class);
 
-        $this->actionClass = is_string($action) ? $action : get_class($action);
+        $this->actionClass = get_class($action);
         $this->queuedActionId = $queuedActionId;
         $this->parameters = $parameters;
 
@@ -84,8 +89,9 @@ class QueuedActionJob implements ShouldQueue
     {
         $this->updateQueuedActionOrSkip(QueuedActionStatus::RUNNING);
 
-        $action = app($this->actionClass);
-        $action->execute(...$this->parameters);
+        $this->action = app($this->actionClass);
+
+        $this->action->execute(...$this->parameters);
 
         $this->updateQueuedActionOrSkip(QueuedActionStatus::SUCCEEDED);
     }
@@ -97,10 +103,8 @@ class QueuedActionJob implements ShouldQueue
     {
         $this->updateQueuedActionOrSkip(QueuedActionStatus::FAILED, $exception->getMessage());
 
-        $action = app($this->actionClass);
-
-        if(method_exists($action, 'failed')) {
-            $action->failed($exception);
+        if(method_exists($this->action, 'failed')) {
+            $this->action->failed($exception);
         }
     }
 
