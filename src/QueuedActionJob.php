@@ -99,7 +99,7 @@ class QueuedActionJob implements ShouldQueue
 
         $action = app($this->actionClass);
 
-        if(property_exists($action, 'failed')) {
+        if(method_exists($action, 'failed')) {
             $action->failed($exception);
         }
     }
