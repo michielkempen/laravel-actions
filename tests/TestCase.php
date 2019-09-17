@@ -1,6 +1,6 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Tests;
+namespace MichielKempen\LaravelActions\Tests;
 
 use Illuminate\Database\Eloquent\Factory;
 use Illuminate\Database\Schema\Blueprint;

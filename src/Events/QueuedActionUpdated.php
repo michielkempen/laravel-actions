@@ -1,8 +1,8 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Events;
+namespace MichielKempen\LaravelActions\Events;
 
-use MichielKempen\LaravelQueueableActions\Database\QueuedAction;
+use MichielKempen\LaravelActions\Database\QueuedAction;
 
 class QueuedActionUpdated
 {

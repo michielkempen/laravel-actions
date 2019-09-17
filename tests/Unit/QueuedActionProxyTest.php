@@ -1,14 +1,14 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Tests\Unit;
+namespace MichielKempen\LaravelActions\Tests\Unit;
 
-use MichielKempen\LaravelQueueableActions\Database\QueuedAction;
-use MichielKempen\LaravelQueueableActions\Database\QueuedActionRepository;
-use MichielKempen\LaravelQueueableActions\QueuedActionProxy;
-use MichielKempen\LaravelQueueableActions\Tests\Support\ComplexAction;
-use MichielKempen\LaravelQueueableActions\Tests\Support\SimpleAction;
-use MichielKempen\LaravelQueueableActions\Tests\Support\TestModel;
-use MichielKempen\LaravelQueueableActions\Tests\TestCase;
+use MichielKempen\LaravelActions\Database\QueuedAction;
+use MichielKempen\LaravelActions\Database\QueuedActionRepository;
+use MichielKempen\LaravelActions\Implementations\Async\QueuedActionProxy;
+use MichielKempen\LaravelActions\Tests\Support\ComplexAction;
+use MichielKempen\LaravelActions\Tests\Support\SimpleAction;
+use MichielKempen\LaravelActions\Tests\Support\TestModel;
+use MichielKempen\LaravelActions\Tests\TestCase;
 use Mockery\MockInterface;
 
 class QueuedActionProxyTest extends TestCase

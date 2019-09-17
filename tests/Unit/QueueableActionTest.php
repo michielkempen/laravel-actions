@@ -1,13 +1,13 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Tests\Unit;
+namespace MichielKempen\LaravelActions\Tests\Unit;
 
-use MichielKempen\LaravelQueueableActions\QueuedActionJob;
-use MichielKempen\LaravelQueueableActions\QueuedActionProxy;
-use MichielKempen\LaravelQueueableActions\Tests\Support\Mocks\MockedQueuedActionProxy;
-use MichielKempen\LaravelQueueableActions\Tests\Support\SimpleAction;
-use MichielKempen\LaravelQueueableActions\Tests\Support\TestModel;
-use MichielKempen\LaravelQueueableActions\Tests\TestCase;
+use MichielKempen\LaravelActions\Implementations\Async\QueuedActionJob;
+use MichielKempen\LaravelActions\Implementations\Async\QueuedActionProxy;
+use MichielKempen\LaravelActions\Tests\Support\Mocks\MockedQueuedActionProxy;
+use MichielKempen\LaravelActions\Tests\Support\SimpleAction;
+use MichielKempen\LaravelActions\Tests\Support\TestModel;
+use MichielKempen\LaravelActions\Tests\TestCase;
 
 class QueueableActionTest extends TestCase
 {
@@ -29,7 +29,7 @@ class QueueableActionTest extends TestCase
         $this->app->bind(QueuedActionProxy::class, MockedQueuedActionProxy::class);
 
         /** @var MockedQueuedActionProxy $queuedActionProxy */
-        $queuedActionProxy = $action->onQueue();
+        $queuedActionProxy = $action->queue();
 
         $this->assertInstanceOf(MockedQueuedActionProxy::class, $queuedActionProxy);
         $this->assertEquals($action, $queuedActionProxy->getAction());
@@ -47,7 +47,7 @@ class QueueableActionTest extends TestCase
         $this->app->bind(QueuedActionProxy::class, MockedQueuedActionProxy::class);
 
         /** @var MockedQueuedActionProxy $queuedActionProxy */
-        $queuedActionProxy = $action->onQueue($model);
+        $queuedActionProxy = $action->queue($model);
 
         $this->assertInstanceOf(MockedQueuedActionProxy::class, $queuedActionProxy);
         $this->assertEquals($action, $queuedActionProxy->getAction());

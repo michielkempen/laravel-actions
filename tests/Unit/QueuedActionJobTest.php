@@ -1,17 +1,17 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Tests\Unit;
+namespace MichielKempen\LaravelActions\Tests\Unit;
 
 use Exception as PhpException;
 use Illuminate\Support\Facades\Event;
-use MichielKempen\LaravelQueueableActions\Database\QueuedAction;
-use MichielKempen\LaravelQueueableActions\Database\QueuedActionRepository;
-use MichielKempen\LaravelQueueableActions\Events\QueuedActionUpdated;
-use MichielKempen\LaravelQueueableActions\QueuedActionJob;
-use MichielKempen\LaravelQueueableActions\Tests\Support\ComplexAction;
-use MichielKempen\LaravelQueueableActions\Tests\Support\DataObject;
-use MichielKempen\LaravelQueueableActions\Tests\Support\SimpleAction;
-use MichielKempen\LaravelQueueableActions\Tests\TestCase;
+use MichielKempen\LaravelActions\Database\QueuedAction;
+use MichielKempen\LaravelActions\Database\QueuedActionRepository;
+use MichielKempen\LaravelActions\Events\QueuedActionUpdated;
+use MichielKempen\LaravelActions\Implementations\Async\QueuedActionJob;
+use MichielKempen\LaravelActions\Tests\Support\ComplexAction;
+use MichielKempen\LaravelActions\Tests\Support\DataObject;
+use MichielKempen\LaravelActions\Tests\Support\SimpleAction;
+use MichielKempen\LaravelActions\Tests\TestCase;
 use Mockery;
 use Mockery\MockInterface;
 

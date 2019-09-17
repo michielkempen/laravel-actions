@@ -1,12 +1,32 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Database;
+namespace MichielKempen\LaravelActions\Database;
 
-use Illuminate\Support\Carbon;
+use MichielKempen\LaravelActions\Action;
 use MichielKempen\LaravelUuidModel\UuidModel;
 
 class QueuedAction extends UuidModel
 {
+    /**
+     * @var bool
+     */
+    public $timestamps = false;
+
+    /**
+     * @var array
+     */
+    protected $casts = [
+        'action' => 'array',
+    ];
+
+    /**
+     * @var array
+     */
+    protected $dates = [
+        'started_at',
+        'finished_at',
+    ];
+
     /**
      * @return string
      */
@@ -24,42 +44,14 @@ class QueuedAction extends UuidModel
     }
 
     /**
-     * @return string
+     * @return Action|null
      */
-    public function getName(): string
+    public function getAction(): ?Action
     {
-        return $this->name;
-    }
+        if(is_null($this->action)) {
+            return null;
+        }
 
-    /**
-     * @return string
-     */
-    public function getStatus(): string
-    {
-        return $this->status;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getOutput(): ?string
-    {
-        return $this->output;
-    }
-
-    /**
-     * @return Carbon
-     */
-    public function getCreatedAt(): Carbon
-    {
-        return $this->created_at;
-    }
-
-    /**
-     * @return Carbon
-     */
-    public function getLastUpdatedAt(): Carbon
-    {
-        return $this->updated_at;
+        return Action::createFromSerialization($this->action);
     }
 }

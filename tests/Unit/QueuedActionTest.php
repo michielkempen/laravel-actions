@@ -1,10 +1,10 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Tests\Unit;
+namespace MichielKempen\LaravelActions\Tests\Unit;
 
-use MichielKempen\LaravelQueueableActions\Database\QueuedAction;
-use MichielKempen\LaravelQueueableActions\QueuedActionStatus;
-use MichielKempen\LaravelQueueableActions\Tests\TestCase;
+use MichielKempen\LaravelActions\Database\QueuedAction;
+use MichielKempen\LaravelActions\ActionStatus;
+use MichielKempen\LaravelActions\Tests\TestCase;
 
 class QueuedActionTest extends TestCase
 {
@@ -16,7 +16,7 @@ class QueuedActionTest extends TestCase
             'model_id' => 123,
             'model_type' => 'User',
             'name' => 'Create user',
-            'status' => QueuedActionStatus::RUNNING,
+            'status' => ActionStatus::RUNNING,
             'output' => null,
         ]);
 
@@ -24,7 +24,7 @@ class QueuedActionTest extends TestCase
         $this->assertEquals(123, $queuedAction->getModelId());
         $this->assertEquals('User', $queuedAction->getModelType());
         $this->assertEquals('Create user', $queuedAction->getName());
-        $this->assertEquals(QueuedActionStatus::RUNNING, $queuedAction->getStatus());
+        $this->assertEquals(ActionStatus::RUNNING, $queuedAction->getStatus());
         $this->assertEquals(null, $queuedAction->getOutput());
     }
 }

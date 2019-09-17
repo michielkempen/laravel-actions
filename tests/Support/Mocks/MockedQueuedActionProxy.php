@@ -1,6 +1,6 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Tests\Support\Mocks;
+namespace MichielKempen\LaravelActions\Tests\Support\Mocks;
 
 use Illuminate\Database\Eloquent\Model;
 

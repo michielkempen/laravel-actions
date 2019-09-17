@@ -1,12 +1,12 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Tests\Unit;
+namespace MichielKempen\LaravelActions\Tests\Unit;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use MichielKempen\LaravelQueueableActions\Database\QueuedAction;
-use MichielKempen\LaravelQueueableActions\Database\QueuedActionRepository;
-use MichielKempen\LaravelQueueableActions\QueuedActionStatus;
-use MichielKempen\LaravelQueueableActions\Tests\TestCase;
+use MichielKempen\LaravelActions\Database\QueuedAction;
+use MichielKempen\LaravelActions\Database\QueuedActionRepository;
+use MichielKempen\LaravelActions\ActionStatus;
+use MichielKempen\LaravelActions\Tests\TestCase;
 
 class QueuedActionRepositoryTest extends TestCase
 {
@@ -17,7 +17,7 @@ class QueuedActionRepositoryTest extends TestCase
             'model_id' => 123,
             'model_type' => 'User',
             'name' => 'Create user',
-            'status' => QueuedActionStatus::RUNNING,
+            'status' => ActionStatus::RUNNING,
             'output' => null,
         ]);
 
@@ -30,7 +30,7 @@ class QueuedActionRepositoryTest extends TestCase
         $this->assertEquals(123, $result->model_id);
         $this->assertEquals('User', $result->model_type);
         $this->assertEquals('Create user', $result->name);
-        $this->assertEquals(QueuedActionStatus::RUNNING, $result->status);
+        $this->assertEquals(ActionStatus::RUNNING, $result->status);
         $this->assertEquals(null, $result->output);
     }
 
@@ -50,14 +50,14 @@ class QueuedActionRepositoryTest extends TestCase
         /** @var QueuedActionRepository $repository */
         $repository = app(QueuedActionRepository::class);
         $result = $repository->createQueuedAction(
-            'User', 123, 'Create user', QueuedActionStatus::RUNNING
+            'User', 123, 'Create user', ActionStatus::RUNNING
         );
 
         $this->assertInstanceOf(QueuedAction::class, $result);
         $this->assertEquals(123, $result->model_id);
         $this->assertEquals('User', $result->model_type);
         $this->assertEquals('Create user', $result->name);
-        $this->assertEquals(QueuedActionStatus::RUNNING, $result->status);
+        $this->assertEquals(ActionStatus::RUNNING, $result->status);
         $this->assertEquals(null, $result->output);
     }
 
@@ -68,14 +68,14 @@ class QueuedActionRepositoryTest extends TestCase
             'model_id' => 123,
             'model_type' => 'User',
             'name' => 'Create user',
-            'status' => QueuedActionStatus::RUNNING,
+            'status' => ActionStatus::RUNNING,
             'output' => null,
         ]);
 
         /** @var QueuedActionRepository $repository */
         $repository = app(QueuedActionRepository::class);
         $result = $repository->updateQueuedAction(
-            $queuedAction->id, QueuedActionStatus::FAILED, 'error'
+            $queuedAction->id, ActionStatus::FAILED, 'error'
         );
 
         $this->assertInstanceOf(QueuedAction::class, $result);
@@ -83,7 +83,7 @@ class QueuedActionRepositoryTest extends TestCase
         $this->assertEquals(123, $result->model_id);
         $this->assertEquals('User', $result->model_type);
         $this->assertEquals('Create user', $result->name);
-        $this->assertEquals(QueuedActionStatus::FAILED, $result->status);
+        $this->assertEquals(ActionStatus::FAILED, $result->status);
         $this->assertEquals('error', $result->output);
     }
 
@@ -95,7 +95,7 @@ class QueuedActionRepositoryTest extends TestCase
         /** @var QueuedActionRepository $repository */
         $repository = app(QueuedActionRepository::class);
         $repository->updateQueuedAction(
-            321, QueuedActionStatus::FAILED, 'error'
+            321, ActionStatus::FAILED, 'error'
         );
     }
 }

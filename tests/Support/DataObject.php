@@ -1,6 +1,6 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Tests\Support;
+namespace MichielKempen\LaravelActions\Tests\Support;
 
 class DataObject
 {

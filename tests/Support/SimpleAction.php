@@ -1,8 +1,8 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Tests\Support;
+namespace MichielKempen\LaravelActions\Tests\Support;
 
-use MichielKempen\LaravelQueueableActions\QueueableAction;
+use MichielKempen\LaravelActions\Implementations\Async\QueueableAction;
 
 class SimpleAction
 {

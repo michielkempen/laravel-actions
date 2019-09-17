@@ -1,13 +1,13 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Tests\Feature;
+namespace MichielKempen\LaravelActions\Tests\Feature;
 
 use Illuminate\Support\Facades\Queue;
-use MichielKempen\LaravelQueueableActions\QueuedActionJob;
-use MichielKempen\LaravelQueueableActions\Tests\Support\ComplexAction;
-use MichielKempen\LaravelQueueableActions\Tests\Support\DataObject;
-use MichielKempen\LaravelQueueableActions\Tests\Support\SimpleAction;
-use MichielKempen\LaravelQueueableActions\Tests\TestCase;
+use MichielKempen\LaravelActions\Implementations\Async\QueuedActionJob;
+use MichielKempen\LaravelActions\Tests\Support\ComplexAction;
+use MichielKempen\LaravelActions\Tests\Support\DataObject;
+use MichielKempen\LaravelActions\Tests\Support\SimpleAction;
+use MichielKempen\LaravelActions\Tests\TestCase;
 
 class QueueableActionTest extends TestCase
 {
@@ -17,7 +17,7 @@ class QueueableActionTest extends TestCase
         Queue::fake();
 
         $action = new SimpleAction;
-        $action->onQueue()->execute();
+        $action->queue()->execute();
 
         Queue::assertPushed(QueuedActionJob::class);
     }
@@ -27,7 +27,7 @@ class QueueableActionTest extends TestCase
     {
         /** @var ComplexAction $action */
         $action = app(ComplexAction::class);
-        $action->onQueue()->execute(new DataObject('foo'));
+        $action->queue()->execute(new DataObject('foo'));
 
         $this->assertLogHas('foo bar');
     }
@@ -40,7 +40,7 @@ class QueueableActionTest extends TestCase
         /** @var ComplexAction $action */
         $action = app(ComplexAction::class);
         $action->queue = 'other';
-        $action->onQueue()->execute(new DataObject('foo'));
+        $action->queue()->execute(new DataObject('foo'));
 
         Queue::assertPushedOn('other', QueuedActionJob::class);
     }
@@ -66,7 +66,7 @@ class QueueableActionTest extends TestCase
 
         /** @var ComplexAction $action */
         $action = app(ComplexAction::class);
-        $action->onQueue()
+        $action->queue()
             ->execute(new DataObject('foo'))
             ->chain([
                 new QueuedActionJob(SimpleAction::class),

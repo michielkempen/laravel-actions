@@ -1,7 +1,7 @@
 <?php
 
 use Faker\Generator as Faker;
-use MichielKempen\LaravelQueueableActions\Database\QueuedAction;
+use MichielKempen\LaravelActions\Database\QueuedAction;
 
 $factory->define(QueuedAction::class, function (Faker $faker) {
     return [
