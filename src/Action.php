@@ -128,6 +128,14 @@ class Action implements Arrayable
     }
 
     /**
+     * @return mixed
+     */
+    public function instantiateAction()
+    {
+        return app($this->actionClass);
+    }
+
+    /**
      * @return array
      */
     public function getParameters(): array

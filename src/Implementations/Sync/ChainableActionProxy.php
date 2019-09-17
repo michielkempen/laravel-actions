@@ -16,32 +16,40 @@ class ChainableActionProxy extends ActionProxy
      */
     public function execute(...$parameters)
     {
-        $actionChain = new ActionChain;
+        $actionChain = $this->createActionChain($parameters);
 
-        $action = $this->createAction($actionChain, $this->action);
-        $this->executeAction($actionChain, $action);
+        $actionChain->getActions()->each(function(Action $action) use ($actionChain) {
 
-        foreach ($this->chainedActions as $actionClass) {
-            $action = app($actionClass);
-            $action = $this->createAction($actionChain, $action);
+            $action->setStartedAt(now());
+
             $this->executeAction($actionChain, $action);
-        }
+
+            $action->setFinishedAt(now());
+
+            $this->triggerCallbacks($actionChain);
+
+        });
 
         return $actionChain;
     }
 
     /**
-     * @param ActionChain $actionChain
-     * @param $action
-     * @return Action
+     * @param array $parameters
+     * @return ActionChain
      */
-    private function createAction(ActionChain $actionChain, $action): Action
+    private function createActionChain(array $parameters): ActionChain
     {
-        $action = Action::createFromAction($action);
+        $actionChain = new ActionChain;
 
+        $action = Action::createFromAction(get_class($this->action), $parameters);
         $actionChain->addAction($action);
 
-        return $action;
+        foreach ($this->chainedActions as $actionClass) {
+            $action = Action::createFromAction($actionClass, $parameters);
+            $actionChain->addAction($action);
+        }
+
+        return $actionChain;
     }
 
     /**
@@ -50,38 +58,35 @@ class ChainableActionProxy extends ActionProxy
      */
     private function executeAction(ActionChain $actionChain, Action $action): void
     {
-        $actionInstance = app($action->getActionClass());
-
-        $action->setStartedAt(now());
+        $actionInstance = $action->instantiateAction();
 
         if($this->shouldSkipAction($actionChain, $actionInstance)) {
             $action->setStatus(ActionStatus::SKIPPED);
-        } else {
-            try {
-                $output = $actionInstance->execute(...$action->getParameters());
-                $action->setStatus(ActionStatus::SUCCEEDED)->setOutput($output);
-            } catch (PhpException $exception) {
-                $action->setStatus(ActionStatus::FAILED)->setOutput($exception->getMessage());
-            }
+            return;
         }
 
-        $action->setFinishedAt(now());
+        try {
+            $output = $actionInstance->execute(...$action->getParameters());
+        } catch (PhpException $exception) {
+            $action->setStatus(ActionStatus::FAILED)->setOutput($exception->getMessage());
+            return;
+        }
 
-        $this->triggerCallbacks($actionChain);
+        $action->setStatus(ActionStatus::SUCCEEDED)->setOutput($output);
     }
 
     /**
      * @param ActionChain $report
-     * @param $action
+     * @param $actionInstance
      * @return bool
      */
-    private function shouldSkipAction(ActionChain $report, $action): bool
+    private function shouldSkipAction(ActionChain $report, $actionInstance): bool
     {
-        if(! method_exists($action, 'skip')) {
+        if(! method_exists($actionInstance, 'skip')) {
             return false;
         }
 
-        return $action->skip($report);
+        return $actionInstance->skip($report);
     }
 
     /**

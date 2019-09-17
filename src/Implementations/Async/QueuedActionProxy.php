@@ -4,6 +4,7 @@ namespace MichielKempen\LaravelActions\Implementations\Async;
 
 use Illuminate\Database\Eloquent\Model;
 use MichielKempen\LaravelActions\Action;
+use MichielKempen\LaravelActions\ActionChain;
 use MichielKempen\LaravelActions\ActionProxy;
 use MichielKempen\LaravelActions\Database\QueuedActionRepository;
 
@@ -35,17 +36,6 @@ class QueuedActionProxy extends ActionProxy
     }
 
     /**
-     * @param array $actions
-     * @return QueuedActionProxy
-     */
-    public function chain(array $actions): self
-    {
-        $this->chainedActions = array_merge($this->chainedActions, $actions);
-
-        return $this;
-    }
-
-    /**
      * @param Model $model
      * @return QueuedActionProxy
      */
@@ -62,18 +52,39 @@ class QueuedActionProxy extends ActionProxy
      */
     public function execute(...$parameters)
     {
+        $actionChain = $this->createActionChain($parameters);
+
         $pendingDispatch = dispatch($this->mapActionToQueuedActionJob($this->action, $parameters));
 
         if(empty($this->chainedActions)) {
             return;
         }
 
-        $chainedActions = array_map(function($actionClass) use ($parameters) {
+        $chainedActions = array_map(function(string $actionClass) use ($parameters) {
             $action = app($actionClass);
             return $this->mapActionToQueuedActionJob($action, $parameters);
         }, $this->chainedActions);
 
         $pendingDispatch->chain($chainedActions);
+    }
+
+    /**
+     * @param array $parameters
+     * @return ActionChain
+     */
+    private function createActionChain(array $parameters): ActionChain
+    {
+        $actionChain = new QueuedActionChain($this->callbacks);
+
+        $action = Action::createFromAction(get_class($this->action), $parameters);
+        $actionChain->addAction($action);
+
+        foreach ($this->chainedActions as $actionClass) {
+            $action = Action::createFromAction($actionClass, $parameters);
+            $actionChain->addAction($action);
+        }
+
+        return $actionChain;
     }
 
     /**
