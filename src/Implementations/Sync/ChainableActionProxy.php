@@ -26,7 +26,7 @@ class ChainableActionProxy extends ActionProxy
 
             $action->setFinishedAt(now());
 
-            $this->triggerCallbacks($action);
+            $this->triggerCallbacks($action, $actionChain);
 
         });
 
@@ -90,12 +90,13 @@ class ChainableActionProxy extends ActionProxy
     }
 
     /**
+     * @param ActionChain $actionChain
      * @param Action $action
      */
-    private function triggerCallbacks(Action $action): void
+    private function triggerCallbacks(Action $action, ActionChain $actionChain): void
     {
         foreach ($this->callbacks as $callback) {
-            $callback($action);
+            $callback($action, $actionChain);
         }
     }
 }
