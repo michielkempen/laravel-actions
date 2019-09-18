@@ -68,7 +68,7 @@ class QueuedActionJob implements ShouldQueue
 
         $action = $this->queuedAction->getAction();
 
-        $action->setStartedAt(now());
+        $action->setStartedAt(now()->subSeconds($this->delay ?? 0));
 
         $this->executeAction($action);
 
