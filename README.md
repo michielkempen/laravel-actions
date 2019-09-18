@@ -1,4 +1,4 @@
-# Laravel Queueable Actions
+# Laravel Actions
 
 This package was inspired by [Spatie](https://spatie.be/)'s [Laravel Queueable Action package](https://github.com/spatie/laravel-queueable-action).
 
@@ -11,7 +11,7 @@ This package builds on top of the idea of asynchronous actions, and adds a mecha
 Add the package to the dependencies of your application
 
 ```
-composer require michielkempen/laravel-queueable-actions
+composer require michielkempen/laravel-actions
 ```
 
 The package will automatically register itself.
@@ -19,7 +19,7 @@ The package will automatically register itself.
 You can publish the migration with:
 
 ```bash
-php artisan vendor:publish --provider="MichielKempen\LaravelQueueableActions\QueueableActionsServiceProvider" --tag="migrations"
+php artisan vendor:publish --provider="MichielKempen\LaravelActions\ActionsServiceProvider" --tag="migrations"
 ```
 
 After the migration has been published you can create the `queued_actions` by running the migrations:
@@ -33,7 +33,7 @@ php artisan migrate
 ```php
 <?php
 
-use MichielKempen\LaravelQueueableActions\QueueableAction;
+use MichielKempen\LaravelActions\Implementations\Async\QueueableAction;
 
 class MyAction
 {
@@ -68,7 +68,7 @@ class MyController
         $action->onQueue()->execute($model, $requestData);
         
         // Execute the action on the queue and track its state
-        $action->onQueue($model)->execute($model, $requestData);
+        $action->queue()->onModel($model)->execute($model, $requestData);
     }
 }
 ```

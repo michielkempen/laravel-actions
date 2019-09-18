@@ -1,6 +1,8 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Database;
+namespace MichielKempen\LaravelActions\Database;
+
+use MichielKempen\LaravelActions\Action;
 
 class QueuedActionRepository
 {
@@ -27,36 +29,41 @@ class QueuedActionRepository
     }
 
     /**
-     * @param string $modelType
-     * @param string $modelId
-     * @param string $name
-     * @param string $status
+     * @param string|null $chainId
+     * @param int|null $order
+     * @param string|null $modelType
+     * @param string|null $modelId
+     * @param Action $action
+     * @param array $callbacks
      * @return QueuedAction
      */
-    public function createQueuedAction(string $modelType, string $modelId, string $name, string $status): QueuedAction
+    public function createQueuedAction(
+        ?string $chainId, ?int $order, ?string $modelType, ?string $modelId, Action $action, array $callbacks
+    ): QueuedAction
     {
         return $this->model->create([
+            'chain_id' => $chainId,
+            'order' => $order,
             'model_id' => $modelId,
             'model_type' => $modelType,
-            'name' => $name,
-            'status' => $status,
-            'output' => null,
+            'status' => $action->getStatus(),
+            'action' => $action->toArray(),
+            'callbacks' => $callbacks,
         ]);
     }
 
     /**
      * @param string $queuedActionId
-     * @param string $status
-     * @param string|null $output
+     * @param Action $action
      * @return QueuedAction
      */
-    public function updateQueuedAction(string $queuedActionId, string $status, string $output = null): QueuedAction
+    public function updateQueuedAction(string $queuedActionId, Action $action): QueuedAction
     {
         $queuedAction = $this->getQueuedActionOrFail($queuedActionId);
 
         $queuedAction->update([
-            'status' => $status,
-            'output' => $output,
+            'status' => $action->getStatus(),
+            'action' => $action->toArray(),
         ]);
 
         return $queuedAction;

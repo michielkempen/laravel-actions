@@ -1,34 +1,80 @@
 <?php
 
-namespace MichielKempen\LaravelQueueableActions\Database;
+namespace MichielKempen\LaravelActions\Database;
 
-use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use MichielKempen\LaravelActions\Action;
 use MichielKempen\LaravelUuidModel\UuidModel;
+use Opis\Closure\SerializableClosure;
 
 class QueuedAction extends UuidModel
 {
     /**
-     * @return string
+     * @var bool
      */
-    public function getModelId(): string
+    public $timestamps = false;
+
+    /**
+     * @var array
+     */
+    protected $casts = [
+        'action' => 'array',
+    ];
+
+    /**
+     * @return BelongsTo
+     */
+    public function chain(): BelongsTo
+    {
+        return $this->belongsTo(QueuedActionChain::class, 'chain_id');
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getChainId(): ?string
+    {
+        return $this->chain_id;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasChain(): bool
+    {
+        return ! is_null($this->chain_id);
+    }
+
+    /**
+     * @return QueuedActionChain|null
+     */
+    public function getChain(): ?QueuedActionChain
+    {
+        return $this->chain;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getOrder(): ?int
+    {
+        return $this->order;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getModelId(): ?string
     {
         return $this->model_id;
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getModelType(): string
+    public function getModelType(): ?string
     {
         return $this->model_type;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
     }
 
     /**
@@ -40,26 +86,48 @@ class QueuedAction extends UuidModel
     }
 
     /**
-     * @return string|null
+     * @return Action|null
      */
-    public function getOutput(): ?string
+    public function getAction(): ?Action
     {
-        return $this->output;
+        if(is_null($this->action)) {
+            return null;
+        }
+
+        return Action::createFromSerialization($this->action);
     }
 
     /**
-     * @return Carbon
+     * @param $callbacks
      */
-    public function getCreatedAt(): Carbon
+    public function setCallbacksAttribute(array $callbacks)
     {
-        return $this->created_at;
+        $result = array_map(function(SerializableClosure $serializableClosure) {
+            return serialize($serializableClosure);
+        }, $callbacks);
+
+        $this->attributes['callbacks'] = json_encode($result);
     }
 
     /**
-     * @return Carbon
+     * @return array
      */
-    public function getLastUpdatedAt(): Carbon
+    public function getCallbacksAttribute(): array
     {
-        return $this->updated_at;
+        $result = json_decode($this->attributes['callbacks']);
+
+        $result = array_map(function(string $serializedClosure) {
+            return \Opis\Closure\unserialize($serializedClosure);
+        }, $result);
+
+        return $result;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getCallbacks(): ?array
+    {
+        return $this->callbacks;
     }
 }
