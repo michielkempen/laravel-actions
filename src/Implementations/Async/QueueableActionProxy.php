@@ -108,7 +108,7 @@ class QueueableActionProxy extends ActionProxy
         $queuedActionChain = $this->createActionChain($parameters);
         $queuedActions = $queuedActionChain->getActions();
 
-        $queuedAction = $queuedActions->pop();
+        $queuedAction = $queuedActions->shift();
         $action = $queuedAction->getAction()->instantiateAction();
         $pendingDispatch = dispatch(new QueuedActionJob($action, $queuedAction->getId()));
 
