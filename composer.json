@@ -1,10 +1,10 @@
 {
-    "name": "michielkempen/laravel-queueable-actions",
+    "name": "michielkempen/laravel-actions",
     "keywords": [
         "michielkempen",
         "laravel-actions"
     ],
-    "homepage": "https://github.com/michielkempen/laravel-queueable-actions",
+    "homepage": "https://github.com/michielkempen/laravel-actions",
     "license": "MIT",
     "authors": [
         {
