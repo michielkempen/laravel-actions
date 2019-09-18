@@ -13,7 +13,6 @@ use MichielKempen\LaravelActions\ActionChain;
 use MichielKempen\LaravelActions\ActionStatus;
 use MichielKempen\LaravelActions\Database\QueuedAction;
 use MichielKempen\LaravelActions\Database\QueuedActionRepository;
-use MichielKempen\LaravelActions\Events\QueuedActionUpdated;
 
 class QueuedActionJob implements ShouldQueue
 {
@@ -75,11 +74,8 @@ class QueuedActionJob implements ShouldQueue
         $action->setFinishedAt(now());
 
         $this->queuedAction = $this->queuedActionRepository->updateQueuedAction($this->queuedAction->getId(), $action);
-        event(new QueuedActionUpdated($this->queuedAction));
 
-        if($this->queuedAction->hasChain()) {
-            $this->triggerCallbacks();
-        }
+        $this->triggerCallbacks();
     }
 
     /**
@@ -120,38 +116,36 @@ class QueuedActionJob implements ShouldQueue
     }
 
     /**
-     * ...
-     */
-    private function triggerCallbacks(): void
-    {
-        $queuedActionChain = $this->queuedAction->getChain();
-        $actionChain = ActionChain::createFromQueuedActionChain($queuedActionChain);
-
-        foreach ($queuedActionChain->getCallbacks() as $callback) {
-            $callback($actionChain);
-        }
-    }
-
-    /**
      * @param PhpException $exception
      */
     public function failed(PhpException $exception)
     {
-        $queuedAction = $this->queuedActionRepository->getQueuedActionOrFail($this->queuedActionId);
+        $this->queuedAction = $this->queuedActionRepository->getQueuedActionOrFail($this->queuedActionId);
 
-        $action = $queuedAction
+        $action = $this->queuedAction
             ->getAction()
             ->setFinishedAt(now())
             ->setStatus(ActionStatus::FAILED)
             ->setOutput($exception->getMessage());
 
-        $queuedAction = $this->queuedActionRepository->updateQueuedAction($this->queuedActionId, $action);
-        event(new QueuedActionUpdated($queuedAction));
+        $this->queuedAction = $this->queuedActionRepository->updateQueuedAction($this->queuedActionId, $action);
+
+        $this->triggerCallbacks();
 
         $actionInstance = $action->instantiateAction();
 
         if(method_exists($actionInstance, 'failed')) {
             $actionInstance->failed($exception);
+        }
+    }
+
+    /**
+     * ...
+     */
+    private function triggerCallbacks(): void
+    {
+        foreach ($this->queuedAction->getCallbacks() as $callback) {
+            $callback($this->queuedAction->getAction());
         }
     }
 

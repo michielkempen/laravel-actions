@@ -14,13 +14,6 @@ class QueuedActionChain extends UuidModel
     public $timestamps = false;
 
     /**
-     * @var array
-     */
-    protected $casts = [
-        'callbacks' => 'array',
-    ];
-
-    /**
      * @return HasMany
      */
     public function actions(): HasMany
@@ -34,13 +27,5 @@ class QueuedActionChain extends UuidModel
     public function getActions(): ?Collection
     {
         return $this->actions;
-    }
-
-    /**
-     * @return array|null
-     */
-    public function getCallbacks(): ?array
-    {
-        return $this->callbacks;
     }
 }

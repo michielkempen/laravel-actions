@@ -1,10 +1,10 @@
 <?php
 
-namespace MichielKempen\LaravelActions\Tests\Support\Mocks;
+namespace MichielKempen\LaravelActions\Tests\TestCase\Mocks;
 
 use Illuminate\Database\Eloquent\Model;
 
-class MockedQueuedActionProxy
+class MockedQueueableActionProxy
 {
     /**
      * @var

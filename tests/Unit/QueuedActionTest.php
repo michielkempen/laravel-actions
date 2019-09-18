@@ -2,9 +2,9 @@
 
 namespace MichielKempen\LaravelActions\Tests\Unit;
 
-use MichielKempen\LaravelActions\Database\QueuedAction;
 use MichielKempen\LaravelActions\ActionStatus;
-use MichielKempen\LaravelActions\Tests\TestCase;
+use MichielKempen\LaravelActions\Database\QueuedAction;
+use MichielKempen\LaravelActions\Tests\TestCase\TestCase;
 
 class QueuedActionTest extends TestCase
 {

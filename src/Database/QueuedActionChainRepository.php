@@ -27,13 +27,10 @@ class QueuedActionChainRepository
     }
 
     /**
-     * @param array $callbacks
      * @return QueuedActionChain
      */
-    public function createQueuedActionChain(array $callbacks): QueuedActionChain
+    public function createQueuedActionChain(): QueuedActionChain
     {
-        return $this->model->create([
-            'callbacks' => $callbacks,
-        ]);
+        return $this->model->create();
     }
 }

@@ -246,7 +246,7 @@ class Action implements Arrayable
     {
         return [
             'action_class' => $this->actionClass,
-            'parameters' => $this->actionClass,
+            'parameters' => $this->parameters,
             'name' => $this->name,
             'status' => $this->status,
             'output' => $this->output,

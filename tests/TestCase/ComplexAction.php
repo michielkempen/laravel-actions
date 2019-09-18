@@ -1,10 +1,9 @@
 <?php
 
-namespace MichielKempen\LaravelActions\Tests\Support;
+namespace MichielKempen\LaravelActions\Tests\TestCase;
 
 use Exception as PhpException;
 use MichielKempen\LaravelActions\Implementations\Async\QueueableAction;
-use MichielKempen\LaravelActions\Tests\TestCase;
 
 class ComplexAction
 {

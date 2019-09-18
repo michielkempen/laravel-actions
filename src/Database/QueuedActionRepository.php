@@ -34,10 +34,11 @@ class QueuedActionRepository
      * @param string|null $modelType
      * @param string|null $modelId
      * @param Action $action
+     * @param array $callbacks
      * @return QueuedAction
      */
     public function createQueuedAction(
-        ?string $chainId, ?int $order, ?string $modelType, ?string $modelId, Action $action
+        ?string $chainId, ?int $order, ?string $modelType, ?string $modelId, Action $action, array $callbacks
     ): QueuedAction
     {
         return $this->model->create([
@@ -47,6 +48,7 @@ class QueuedActionRepository
             'model_type' => $modelType,
             'status' => $action->getStatus(),
             'action' => $action->toArray(),
+            'callbacks' => $callbacks,
         ]);
     }
 

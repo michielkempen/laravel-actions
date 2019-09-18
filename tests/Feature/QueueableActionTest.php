@@ -4,10 +4,10 @@ namespace MichielKempen\LaravelActions\Tests\Feature;
 
 use Illuminate\Support\Facades\Queue;
 use MichielKempen\LaravelActions\Implementations\Async\QueuedActionJob;
-use MichielKempen\LaravelActions\Tests\Support\ComplexAction;
-use MichielKempen\LaravelActions\Tests\Support\DataObject;
-use MichielKempen\LaravelActions\Tests\Support\SimpleAction;
-use MichielKempen\LaravelActions\Tests\TestCase;
+use MichielKempen\LaravelActions\Tests\TestCase\ComplexAction;
+use MichielKempen\LaravelActions\Tests\TestCase\DataObject;
+use MichielKempen\LaravelActions\Tests\TestCase\SimpleAction;
+use MichielKempen\LaravelActions\Tests\TestCase\TestCase;
 
 class QueueableActionTest extends TestCase
 {

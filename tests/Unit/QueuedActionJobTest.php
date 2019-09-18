@@ -8,10 +8,10 @@ use MichielKempen\LaravelActions\Database\QueuedAction;
 use MichielKempen\LaravelActions\Database\QueuedActionRepository;
 use MichielKempen\LaravelActions\Events\QueuedActionUpdated;
 use MichielKempen\LaravelActions\Implementations\Async\QueuedActionJob;
-use MichielKempen\LaravelActions\Tests\Support\ComplexAction;
-use MichielKempen\LaravelActions\Tests\Support\DataObject;
-use MichielKempen\LaravelActions\Tests\Support\SimpleAction;
-use MichielKempen\LaravelActions\Tests\TestCase;
+use MichielKempen\LaravelActions\Tests\TestCase\ComplexAction;
+use MichielKempen\LaravelActions\Tests\TestCase\DataObject;
+use MichielKempen\LaravelActions\Tests\TestCase\SimpleAction;
+use MichielKempen\LaravelActions\Tests\TestCase\TestCase;
 use Mockery;
 use Mockery\MockInterface;
 

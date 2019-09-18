@@ -3,7 +3,7 @@
 namespace MichielKempen\LaravelActions\Tests\Unit;
 
 use MichielKempen\LaravelActions\ActionStatus;
-use MichielKempen\LaravelActions\Tests\TestCase;
+use MichielKempen\LaravelActions\Tests\TestCase\TestCase;
 
 class QueuedActionStatusTest extends TestCase
 {

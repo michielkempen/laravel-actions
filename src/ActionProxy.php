@@ -4,7 +4,7 @@ namespace MichielKempen\LaravelActions;
 
 use Closure;
 use Illuminate\Queue\SerializableClosure;
-use MichielKempen\LaravelActions\Implementations\Async\QueuedActionProxy;
+use MichielKempen\LaravelActions\Implementations\Async\QueueableActionProxy;
 
 abstract class ActionProxy
 {
@@ -46,7 +46,7 @@ abstract class ActionProxy
 
     /**
      * @param array $actions
-     * @return QueuedActionProxy
+     * @return QueueableActionProxy
      */
     public function chain(array $actions): self
     {

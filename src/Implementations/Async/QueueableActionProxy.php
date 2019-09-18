@@ -10,7 +10,7 @@ use MichielKempen\LaravelActions\Database\QueuedActionChain;
 use MichielKempen\LaravelActions\Database\QueuedActionChainRepository;
 use MichielKempen\LaravelActions\Database\QueuedActionRepository;
 
-class QueuedActionProxy extends ActionProxy
+class QueueableActionProxy extends ActionProxy
 {
     /**
      * @var QueuedActionRepository
@@ -45,7 +45,7 @@ class QueuedActionProxy extends ActionProxy
 
     /**
      * @param Model $model
-     * @return QueuedActionProxy
+     * @return QueueableActionProxy
      */
     public function onModel(Model $model): self
     {
@@ -57,13 +57,16 @@ class QueuedActionProxy extends ActionProxy
 
     /**
      * @param mixed ...$parameters
+     * @return string|null
      */
-    public function execute(...$parameters)
+    public function execute(...$parameters): ?string
     {
         if(empty($this->chainedActions)) {
             $this->executeAction($parameters);
+            return null;
         } else {
-            $this->executeActionChain($parameters);
+            $queuedActionChain = $this->executeActionChain($parameters);
+            return $queuedActionChain->getId();
         }
     }
 
@@ -75,7 +78,7 @@ class QueuedActionProxy extends ActionProxy
         $action = Action::createFromAction(get_class($this->action), $parameters);
 
         $queuedAction = $this->queuedActionRepository->createQueuedAction(
-            null, null, $this->modelType, $this->modelId, $action
+            null, null, $this->modelType, $this->modelId, $action, $this->callbacks
         );
 
         dispatch(new QueuedActionJob($action->instantiateAction(), $queuedAction->getId()));
@@ -83,8 +86,9 @@ class QueuedActionProxy extends ActionProxy
 
     /**
      * @param array $parameters
+     * @return QueuedActionChain
      */
-    public function executeActionChain(array $parameters): void
+    public function executeActionChain(array $parameters): QueuedActionChain
     {
         $queuedActionChain = $this->createActionChain($parameters);
         $queuedActions = $queuedActionChain->getActions();
@@ -99,6 +103,8 @@ class QueuedActionProxy extends ActionProxy
         })->toArray();
 
         $pendingDispatch->chain($chainedQueuedActions);
+
+        return $queuedActionChain;
     }
 
     /**
@@ -107,19 +113,19 @@ class QueuedActionProxy extends ActionProxy
      */
     private function createActionChain(array $parameters): QueuedActionChain
     {
-        $queuedActionChain = $this->queuedActionChainRepository->createQueuedActionChain($this->callbacks);
+        $queuedActionChain = $this->queuedActionChainRepository->createQueuedActionChain();
 
         $order = 0;
 
         $action = Action::createFromAction(get_class($this->action), $parameters);
         $this->queuedActionRepository->createQueuedAction(
-            $queuedActionChain->getId(), ++$order, $this->modelType, $this->modelId, $action
+            $queuedActionChain->getId(), ++$order, $this->modelType, $this->modelId, $action, $this->callbacks
         );
 
         foreach ($this->chainedActions as $actionClass) {
             $action = Action::createFromAction($actionClass, $parameters);
             $this->queuedActionRepository->createQueuedAction(
-                $queuedActionChain->getId(), ++$order, $this->modelType, $this->modelId, $action
+                $queuedActionChain->getId(), ++$order, $this->modelType, $this->modelId, $action, $this->callbacks
             );
         }
 

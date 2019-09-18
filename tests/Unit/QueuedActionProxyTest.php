@@ -4,11 +4,11 @@ namespace MichielKempen\LaravelActions\Tests\Unit;
 
 use MichielKempen\LaravelActions\Database\QueuedAction;
 use MichielKempen\LaravelActions\Database\QueuedActionRepository;
-use MichielKempen\LaravelActions\Implementations\Async\QueuedActionProxy;
-use MichielKempen\LaravelActions\Tests\Support\ComplexAction;
-use MichielKempen\LaravelActions\Tests\Support\SimpleAction;
-use MichielKempen\LaravelActions\Tests\Support\TestModel;
-use MichielKempen\LaravelActions\Tests\TestCase;
+use MichielKempen\LaravelActions\Implementations\Async\QueueableActionProxy;
+use MichielKempen\LaravelActions\Tests\TestCase\ComplexAction;
+use MichielKempen\LaravelActions\Tests\TestCase\SimpleAction;
+use MichielKempen\LaravelActions\Tests\TestCase\TestCase;
+use MichielKempen\LaravelActions\Tests\TestCase\TestModel;
 use Mockery\MockInterface;
 
 class QueuedActionProxyTest extends TestCase
@@ -19,8 +19,8 @@ class QueuedActionProxyTest extends TestCase
         /** @var SimpleAction $action */
         $action = app(SimpleAction::class);
 
-        /** @var QueuedActionProxy $queuedActionProxy */
-        $queuedActionProxy = app()->makeWith(QueuedActionProxy::class, [
+        /** @var QueueableActionProxy $queuedActionProxy */
+        $queuedActionProxy = app()->makeWith(QueueableActionProxy::class, [
             'action' => $action,
         ]);
 
@@ -34,8 +34,8 @@ class QueuedActionProxyTest extends TestCase
         /** @var SimpleAction $action */
         $action = app(SimpleAction::class);
 
-        /** @var QueuedActionProxy $queuedActionProxy */
-        $queuedActionProxy = app()->makeWith(QueuedActionProxy::class, [
+        /** @var QueueableActionProxy $queuedActionProxy */
+        $queuedActionProxy = app()->makeWith(QueueableActionProxy::class, [
             'action' => $action,
             'model' => null,
         ]);
@@ -60,8 +60,8 @@ class QueuedActionProxyTest extends TestCase
                 ->andReturn(factory(QueuedAction::class)->create());
         });
 
-        /** @var QueuedActionProxy $queuedActionProxy */
-        $queuedActionProxy = app()->makeWith(QueuedActionProxy::class, [
+        /** @var QueueableActionProxy $queuedActionProxy */
+        $queuedActionProxy = app()->makeWith(QueueableActionProxy::class, [
             'action' => $action,
             'model' => $model,
         ]);
@@ -86,8 +86,8 @@ class QueuedActionProxyTest extends TestCase
                 ->andReturn(factory(QueuedAction::class)->create());
         });
 
-        /** @var QueuedActionProxy $queuedActionProxy */
-        $queuedActionProxy = app()->makeWith(QueuedActionProxy::class, [
+        /** @var QueueableActionProxy $queuedActionProxy */
+        $queuedActionProxy = app()->makeWith(QueueableActionProxy::class, [
             'action' => $action,
             'model' => $model,
         ]);

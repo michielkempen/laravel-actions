@@ -1,6 +1,6 @@
 <?php
 
-namespace MichielKempen\LaravelActions\Tests\Support;
+namespace MichielKempen\LaravelActions\Tests\TestCase;
 
 use Illuminate\Database\Eloquent\Model;
 
