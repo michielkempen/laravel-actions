@@ -5,7 +5,7 @@ namespace MichielKempen\LaravelActions\Tests\Unit;
 use MichielKempen\LaravelActions\Database\QueuedAction;
 use MichielKempen\LaravelActions\Database\QueuedActionRepository;
 use MichielKempen\LaravelActions\Implementations\Async\QueueableActionProxy;
-use MichielKempen\LaravelActions\Tests\TestCase\ComplexAction;
+use MichielKempen\LaravelActions\Tests\TestCase\Actions\ComplexAction;
 use MichielKempen\LaravelActions\Tests\TestCase\SimpleAction;
 use MichielKempen\LaravelActions\Tests\TestCase\TestCase;
 use MichielKempen\LaravelActions\Tests\TestCase\TestModel;

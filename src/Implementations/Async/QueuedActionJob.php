@@ -145,7 +145,7 @@ class QueuedActionJob implements ShouldQueue
     private function triggerCallbacks(): void
     {
         foreach ($this->queuedAction->getCallbacks() as $callback) {
-            $callback($this->queuedAction->getAction());
+            $callback($this->queuedAction->getAction(), $this->queuedAction);
         }
     }
 

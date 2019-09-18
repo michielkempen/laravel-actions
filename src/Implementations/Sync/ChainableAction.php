@@ -12,7 +12,7 @@ trait ChainableAction
     {
         $class = app()->makeWith(ChainableActionProxy::class, [
             'action' => $this,
-            'actions' => $actions,
+            'chainedActions' => $actions,
         ]);
 
         return $class;

@@ -126,7 +126,7 @@ class ActionChain implements Arrayable
     {
         return $this->actions->filter(function(Action $action) use ($actionClasses) {
             return in_array($action->getActionClass(), $actionClasses)
-                && $action->getStatus() != ActionStatus::SUCCEEDED;
+                && in_array($action->getStatus(), [ActionStatus::FAILED, ActionStatus::SKIPPED]);
         })->isNotEmpty();
     }
 

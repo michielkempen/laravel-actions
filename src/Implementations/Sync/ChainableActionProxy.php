@@ -41,11 +41,11 @@ class ChainableActionProxy extends ActionProxy
     {
         $actionChain = new ActionChain;
 
-        $action = Action::createFromAction(get_class($this->action), $parameters);
+        $action = Action::createFromAction($this->action, $parameters);
         $actionChain->addAction($action);
 
         foreach ($this->chainedActions as $actionClass) {
-            $action = Action::createFromAction($actionClass, $parameters);
+            $action = Action::createFromAction(app($actionClass), $parameters);
             $actionChain->addAction($action);
         }
 
