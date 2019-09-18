@@ -6,7 +6,6 @@ use MichielKempen\LaravelActions\Action;
 use MichielKempen\LaravelActions\ActionStatus;
 use MichielKempen\LaravelActions\Database\QueuedAction;
 use MichielKempen\LaravelActions\Database\QueuedActionChain;
-use MichielKempen\LaravelActions\Tests\TestCase\SimpleAction;
 use Opis\Closure\SerializableClosure;
 
 $factory->define(QueuedAction::class, function (Faker $faker) {

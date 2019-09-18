@@ -33,9 +33,9 @@ class QueueableActionProxy extends ActionProxy
     protected $modelId;
 
     /**
-     * @param $action
+     * @param object $action
      */
-    public function __construct($action)
+    public function __construct(object $action)
     {
         parent::__construct($action);
 
@@ -71,11 +71,26 @@ class QueueableActionProxy extends ActionProxy
     }
 
     /**
+     * @param mixed ...$parameters
+     * @return QueuedActionJob
+     */
+    public function getJob(...$parameters): QueuedActionJob
+    {
+        $action = Action::createFromAction($this->action, $parameters);
+
+        $queuedAction = $this->queuedActionRepository->createQueuedAction(
+            null, null, $this->modelType, $this->modelId, $action, $this->callbacks
+        );
+
+        return new QueuedActionJob($action->instantiateAction(), $queuedAction->getId());
+    }
+
+    /**
      * @param array $parameters
      */
-    public function executeAction(array $parameters): void
+    private function executeAction(array $parameters): void
     {
-        $action = Action::createFromAction(get_class($this->action), $parameters);
+        $action = Action::createFromAction($this->action, $parameters);
 
         $queuedAction = $this->queuedActionRepository->createQueuedAction(
             null, null, $this->modelType, $this->modelId, $action, $this->callbacks
@@ -88,7 +103,7 @@ class QueueableActionProxy extends ActionProxy
      * @param array $parameters
      * @return QueuedActionChain
      */
-    public function executeActionChain(array $parameters): QueuedActionChain
+    private function executeActionChain(array $parameters): QueuedActionChain
     {
         $queuedActionChain = $this->createActionChain($parameters);
         $queuedActions = $queuedActionChain->getActions();

@@ -44,8 +44,6 @@ class Action implements Arrayable
     private $finishedAt;
 
     /**
-     * TaskReport constructor.
-     *
      * @param string $actionClass
      * @param array $parameters
      * @param string $name
@@ -93,7 +91,7 @@ class Action implements Arrayable
      * @param array $parameters
      * @return Action
      */
-    public static function createFromAction($action, array $parameters = []) : Action
+    public static function createFromAction(object $action, array $parameters = []) : Action
     {
         $actionClass = get_class($action);
         $name = self::parseName($action);
@@ -106,7 +104,7 @@ class Action implements Arrayable
      * @param $action
      * @return string
      */
-    public static function parseName($action): string
+    public static function parseName(object $action): string
     {
         if(property_exists($action, 'name')) {
             return  $action->name;
@@ -128,9 +126,9 @@ class Action implements Arrayable
     }
 
     /**
-     * @return mixed
+     * @return object
      */
-    public function instantiateAction()
+    public function instantiateAction(): object
     {
         return app($this->actionClass);
     }

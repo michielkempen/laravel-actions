@@ -3,9 +3,13 @@
 namespace MichielKempen\LaravelActions\Tests\TestCase\Actions;
 
 use MichielKempen\LaravelActions\ActionChain;
+use MichielKempen\LaravelActions\Implementations\Async\QueueableAction;
+use MichielKempen\LaravelActions\Implementations\Sync\ChainableAction;
 
 class SkipAction
 {
+    use QueueableAction, ChainableAction;
+
     /**
      * @param ActionChain $actionChain
      * @return bool

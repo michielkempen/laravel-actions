@@ -3,9 +3,13 @@
 namespace MichielKempen\LaravelActions\Tests\TestCase\Actions;
 
 use Exception as PhpException;
+use MichielKempen\LaravelActions\Implementations\Async\QueueableAction;
+use MichielKempen\LaravelActions\Implementations\Sync\ChainableAction;
 
 class ThrowAnExceptionAction
 {
+    use QueueableAction, ChainableAction;
+
     /**
      * @throws PhpException
      */

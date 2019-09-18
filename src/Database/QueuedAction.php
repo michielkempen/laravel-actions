@@ -110,9 +110,9 @@ class QueuedAction extends UuidModel
     }
 
     /**
-     * @return mixed
+     * @return array
      */
-    public function getCallbacksAttribute()
+    public function getCallbacksAttribute(): array
     {
         $result = json_decode($this->attributes['callbacks']);
 

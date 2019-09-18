@@ -3,14 +3,17 @@
 namespace MichielKempen\LaravelActions\Tests\Implementations\Async;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Queue;
 use MichielKempen\LaravelActions\Action;
 use MichielKempen\LaravelActions\ActionChain;
 use MichielKempen\LaravelActions\ActionStatus;
 use MichielKempen\LaravelActions\Database\QueuedActionChain;
+use MichielKempen\LaravelActions\Implementations\Async\QueuedActionJob;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\ReturnTheParametersAsOutputAction;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\SkipAction;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\ThrowAnExceptionAction;
 use MichielKempen\LaravelActions\Tests\TestCase\TestCase;
+use MichielKempen\LaravelActions\Tests\TestCase\TestModel;
 
 class QueueableActionTest extends TestCase
 {
@@ -55,6 +58,32 @@ class QueueableActionTest extends TestCase
         $this->assertEquals("return the parameters as output", $action->getName());
         $this->assertEquals(ActionStatus::SUCCEEDED, $action->getStatus());
         $this->assertEquals([$parameterA, $parameterB], $action->getOutput());
+    }
+
+    /** @test */
+    public function it_pushes_the_actions_on_the_queue()
+    {
+        Queue::fake();
+
+        $parameterA = $this->faker->uuid;
+        $parameterB = $this->faker->uuid;
+
+        (new ReturnTheParametersAsOutputAction)
+            ->queue()
+            ->chain([
+                SkipAction::class,
+                ThrowAnExceptionAction::class,
+                SkipAction::class,
+                ReturnTheParametersAsOutputAction::class,
+            ])
+            ->execute($parameterA, $parameterB);
+
+        Queue::assertPushedWithChain(QueuedActionJob::class, [
+            QueuedActionJob::class,
+            QueuedActionJob::class,
+            QueuedActionJob::class,
+            QueuedActionJob::class,
+        ]);
     }
 
     /** @test */
@@ -117,7 +146,7 @@ class QueueableActionTest extends TestCase
     }
 
     /** @test */
-    public function it_triggers_the_callbacks_after_every_action()
+    public function it_triggers_the_callbacks_after_every_action_in_a_chain()
     {
         $parameterA = $this->faker->uuid;
         $parameterB = $this->faker->uuid;
@@ -150,6 +179,27 @@ class QueueableActionTest extends TestCase
         $actionClass = SkipAction::class;
         $status = ActionStatus::SKIPPED;
         $this->assertLogHas("{$actionClass} - $status");
+
+        $actionClass = ReturnTheParametersAsOutputAction::class;
+        $status = ActionStatus::SUCCEEDED;
+        $this->assertLogHas("{$actionClass} - $status");
+    }
+
+    /** @test */
+    public function it_can_queue_a_single_action()
+    {
+        $parameterA = $this->faker->uuid;
+        $parameterB = $this->faker->uuid;
+
+        $testModel = TestModel::create();
+
+        (new ReturnTheParametersAsOutputAction)
+            ->queue()
+            ->onModel($testModel)
+            ->withCallback(function(Action $action) {
+                file_put_contents(TestCase::LOG_PATH, "{$action->getActionClass()} - {$action->getStatus()}", FILE_APPEND);
+            })
+            ->execute($parameterA, $parameterB);
 
         $actionClass = ReturnTheParametersAsOutputAction::class;
         $status = ActionStatus::SUCCEEDED;

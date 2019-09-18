@@ -9,7 +9,7 @@ use MichielKempen\LaravelActions\Implementations\Async\QueueableActionProxy;
 abstract class ActionProxy
 {
     /**
-     * @var
+     * @var object
      */
     protected $action;
 
@@ -24,10 +24,11 @@ abstract class ActionProxy
     protected $callbacks = [];
 
     /**
-     * @param $action
+     * ActionProxy constructor.
+     * @param object $action
      * @param array $chainedActions
      */
-    public function __construct($action, array $chainedActions = [])
+    public function __construct(object $action, array $chainedActions = [])
     {
         $this->action = $action;
         $this->chainedActions = $chainedActions;
@@ -37,7 +38,7 @@ abstract class ActionProxy
      * @param Closure $callback
      * @return ActionProxy
      */
-    public function withCallback($callback): self
+    public function withCallback(Closure $callback): self
     {
         $this->callbacks[] = new SerializableClosure($callback);
 
@@ -61,9 +62,9 @@ abstract class ActionProxy
     public abstract function execute(...$parameters);
 
     /**
-     * @return mixed
+     * @return object
      */
-    public function getAction()
+    public function getAction(): object
     {
         return $this->action;
     }

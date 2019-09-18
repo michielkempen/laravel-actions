@@ -80,7 +80,7 @@ class ChainableActionProxy extends ActionProxy
      * @param $actionInstance
      * @return bool
      */
-    private function shouldSkipAction(ActionChain $report, $actionInstance): bool
+    private function shouldSkipAction(ActionChain $report, object $actionInstance): bool
     {
         if(! method_exists($actionInstance, 'skip')) {
             return false;
