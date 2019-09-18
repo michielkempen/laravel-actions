@@ -13,11 +13,23 @@ class CreateQueuedActionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('queued_actions', function (Blueprint $table) {
+        Schema::create('queued_action_chains', function (Blueprint $table) {
             // fields
             $table->uuid('id');
+            $table->text('callbacks')->nullable();
+            // indices
+            $table->primary('id');
+        });
+
+        Schema::create('queued_actions', function (Blueprint $table) {
+            $table->uuid('id');
+            // chaining
+            $table->uuid('chain_id')->nullable();
+            $table->integer('order')->nullable();
+            // tracking
             $table->uuid('model_id')->nullable();
             $table->string('model_type')->nullable();
+            // action
             $table->string('status', 16);
             $table->text('action')->nullable();
             // indices

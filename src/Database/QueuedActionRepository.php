@@ -29,14 +29,20 @@ class QueuedActionRepository
     }
 
     /**
+     * @param string|null $chainId
+     * @param int|null $order
      * @param string|null $modelType
      * @param string|null $modelId
      * @param Action $action
      * @return QueuedAction
      */
-    public function createQueuedAction(?string $modelType, ?string $modelId, Action $action): QueuedAction
+    public function createQueuedAction(
+        ?string $chainId, ?int $order, ?string $modelType, ?string $modelId, Action $action
+    ): QueuedAction
     {
         return $this->model->create([
+            'chain_id' => $chainId,
+            'order' => $order,
             'model_id' => $modelId,
             'model_type' => $modelType,
             'status' => $action->getStatus(),

@@ -4,6 +4,8 @@ namespace MichielKempen\LaravelActions;
 
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection;
+use MichielKempen\LaravelActions\Database\QueuedAction;
+use MichielKempen\LaravelActions\Database\QueuedActionChain;
 
 class ActionChain implements Arrayable
 {
@@ -31,6 +33,21 @@ class ActionChain implements Arrayable
         foreach ($serialization['actions'] as $action) {
             $actionChain->addAction(Action::createFromSerialization($action));
         }
+
+        return $actionChain;
+    }
+
+    /**
+     * @param QueuedActionChain $queuedActionChain
+     * @return ActionChain
+     */
+    public static function createFromQueuedActionChain(QueuedActionChain $queuedActionChain): self
+    {
+        $actionChain = new static;
+
+        $queuedActionChain->getActions()->each(function(QueuedAction $queuedAction) use ($actionChain) {
+            $actionChain->addAction($queuedAction->getAction());
+        });
 
         return $actionChain;
     }

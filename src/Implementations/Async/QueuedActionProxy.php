@@ -4,8 +4,10 @@ namespace MichielKempen\LaravelActions\Implementations\Async;
 
 use Illuminate\Database\Eloquent\Model;
 use MichielKempen\LaravelActions\Action;
-use MichielKempen\LaravelActions\ActionChain;
 use MichielKempen\LaravelActions\ActionProxy;
+use MichielKempen\LaravelActions\Database\QueuedAction;
+use MichielKempen\LaravelActions\Database\QueuedActionChain;
+use MichielKempen\LaravelActions\Database\QueuedActionChainRepository;
 use MichielKempen\LaravelActions\Database\QueuedActionRepository;
 
 class QueuedActionProxy extends ActionProxy
@@ -14,6 +16,11 @@ class QueuedActionProxy extends ActionProxy
      * @var QueuedActionRepository
      */
     private $queuedActionRepository;
+
+    /**
+     * @var QueuedActionChainRepository
+     */
+    private $queuedActionChainRepository;
 
     /**
      * @var string|null
@@ -33,6 +40,7 @@ class QueuedActionProxy extends ActionProxy
         parent::__construct($action);
 
         $this->queuedActionRepository = app(QueuedActionRepository::class);
+        $this->queuedActionChainRepository = app(QueuedActionChainRepository::class);
     }
 
     /**
@@ -52,55 +60,70 @@ class QueuedActionProxy extends ActionProxy
      */
     public function execute(...$parameters)
     {
-        $actionChain = $this->createActionChain($parameters);
-
-        $pendingDispatch = dispatch($this->mapActionToQueuedActionJob($this->action, $parameters));
-
         if(empty($this->chainedActions)) {
-            return;
+            $this->executeAction($parameters);
+        } else {
+            $this->executeActionChain($parameters);
         }
-
-        $chainedActions = array_map(function(string $actionClass) use ($parameters) {
-            $action = app($actionClass);
-            return $this->mapActionToQueuedActionJob($action, $parameters);
-        }, $this->chainedActions);
-
-        $pendingDispatch->chain($chainedActions);
     }
 
     /**
      * @param array $parameters
-     * @return ActionChain
      */
-    private function createActionChain(array $parameters): ActionChain
+    public function executeAction(array $parameters): void
     {
-        $actionChain = new QueuedActionChain($this->callbacks);
+        $action = Action::createFromAction(get_class($this->action), $parameters);
+
+        $queuedAction = $this->queuedActionRepository->createQueuedAction(
+            null, null, $this->modelType, $this->modelId, $action
+        );
+
+        dispatch(new QueuedActionJob($action->instantiateAction(), $queuedAction->getId()));
+    }
+
+    /**
+     * @param array $parameters
+     */
+    public function executeActionChain(array $parameters): void
+    {
+        $queuedActionChain = $this->createActionChain($parameters);
+        $queuedActions = $queuedActionChain->getActions();
+
+        $queuedAction = $queuedActions->pop();
+        $action = $queuedAction->getAction()->instantiateAction();
+        $pendingDispatch = dispatch(new QueuedActionJob($action, $queuedAction->getId()));
+
+        $chainedQueuedActions = $queuedActions->each(function(QueuedAction $queuedAction) {
+            $action = $queuedAction->getAction()->instantiateAction();
+            return new QueuedActionJob($action, $queuedAction->getId());
+        })->toArray();
+
+        $pendingDispatch->chain($chainedQueuedActions);
+    }
+
+    /**
+     * @param array $parameters
+     * @return QueuedActionChain
+     */
+    private function createActionChain(array $parameters): QueuedActionChain
+    {
+        $queuedActionChain = $this->queuedActionChainRepository->createQueuedActionChain($this->callbacks);
+
+        $order = 0;
 
         $action = Action::createFromAction(get_class($this->action), $parameters);
-        $actionChain->addAction($action);
+        $this->queuedActionRepository->createQueuedAction(
+            $queuedActionChain->getId(), ++$order, $this->modelType, $this->modelId, $action
+        );
 
         foreach ($this->chainedActions as $actionClass) {
             $action = Action::createFromAction($actionClass, $parameters);
-            $actionChain->addAction($action);
+            $this->queuedActionRepository->createQueuedAction(
+                $queuedActionChain->getId(), ++$order, $this->modelType, $this->modelId, $action
+            );
         }
 
-        return $actionChain;
-    }
-
-    /**
-     * @param $action
-     * @param array $parameters
-     * @return QueuedActionJob
-     */
-    private function mapActionToQueuedActionJob($action, array $parameters = []): QueuedActionJob
-    {
-        $action = Action::createFromAction($action, $parameters);
-
-        $queuedAction = $this->queuedActionRepository->createQueuedAction(
-            $this->modelType, $this->modelId, $action
-        );
-
-        return new QueuedActionJob($action, $queuedAction->getId());
+        return $queuedActionChain;
     }
 
     /**

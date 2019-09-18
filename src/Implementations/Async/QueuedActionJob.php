@@ -67,33 +67,35 @@ class QueuedActionJob implements ShouldQueue
         $this->queuedAction = $this->queuedActionRepository->getQueuedActionOrFail($this->queuedActionId);
 
         $action = $this->queuedAction->getAction();
-        $actionChain = 'todo';
 
         $action->setStartedAt(now());
 
-        $this->executeAction($actionChain, $action);
+        $this->executeAction($action);
 
         $action->setFinishedAt(now());
 
         $this->queuedAction = $this->queuedActionRepository->updateQueuedAction($this->queuedAction->getId(), $action);
         event(new QueuedActionUpdated($this->queuedAction));
 
-        $this->triggerCallbacks($actionChain);
+        if($this->queuedAction->hasChain()) {
+            $this->triggerCallbacks();
+        }
     }
 
     /**
-     * @param QueuedActionChain $actionChain
      * @param Action $action
      */
-    private function executeAction(QueuedActionChain $actionChain, Action $action): void
+    private function executeAction(Action $action): void
     {
-        if ($this->shouldSkipAction($actionChain, $action)) {
+        $actionInstance = $action->instantiateAction();
+
+        if($this->queuedAction->hasChain() && $this->shouldSkipAction($actionInstance)) {
             $action->setStatus(ActionStatus::SKIPPED);
             return;
         }
 
         try {
-            $output = $action->execute(...$action->getParameters());
+            $output = $actionInstance->execute(...$action->getParameters());
         } catch (PhpException $exception) {
             $action->setStatus(ActionStatus::FAILED)->setOutput($exception->getMessage());
             return;
@@ -103,25 +105,29 @@ class QueuedActionJob implements ShouldQueue
     }
 
     /**
-     * @param QueuedActionChain $actionChain
      * @param $actionInstance
      * @return bool
      */
-    private function shouldSkipAction(QueuedActionChain $actionChain, $actionInstance): bool
+    private function shouldSkipAction($actionInstance): bool
     {
         if(! method_exists($actionInstance, 'skip')) {
             return false;
         }
 
+        $actionChain = ActionChain::createFromQueuedActionChain($this->queuedAction->getChain());
+
         return $actionInstance->skip($actionChain);
     }
 
     /**
-     * @param QueuedActionChain $actionChain
+     * ...
      */
-    private function triggerCallbacks(QueuedActionChain $actionChain): void
+    private function triggerCallbacks(): void
     {
-        foreach ($actionChain->getCallbacks() as $callback) {
+        $queuedActionChain = $this->queuedAction->getChain();
+        $actionChain = ActionChain::createFromQueuedActionChain($queuedActionChain);
+
+        foreach ($queuedActionChain->getCallbacks() as $callback) {
             $callback($actionChain);
         }
     }
