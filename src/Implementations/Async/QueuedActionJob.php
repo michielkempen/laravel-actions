@@ -163,7 +163,7 @@ class QueuedActionJob implements ShouldQueue
     public function displayName(): string
     {
         if(is_null($this->queuedAction)) {
-            return get_class($this);
+            $this->queuedAction = $this->queuedActionRepository->getQueuedActionOrFail($this->queuedActionId);
         }
 
         return $this->queuedAction->getAction()->getActionClass();
