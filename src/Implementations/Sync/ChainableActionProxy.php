@@ -4,6 +4,7 @@ namespace MichielKempen\LaravelActions\Implementations\Sync;
 
 use Exception as PhpException;
 use MichielKempen\LaravelActions\Action;
+use MichielKempen\LaravelActions\ActionCallback;
 use MichielKempen\LaravelActions\ActionChain;
 use MichielKempen\LaravelActions\ActionProxy;
 use MichielKempen\LaravelActions\ActionStatus;
@@ -17,6 +18,8 @@ class ChainableActionProxy extends ActionProxy
     public function execute(...$parameters)
     {
         $actionChain = $this->createActionChain($parameters);
+
+        $this->triggerCallbacks(null, $actionChain);
 
         $actionChain->getActions()->each(function(Action $action) use ($actionChain) {
 
@@ -91,12 +94,14 @@ class ChainableActionProxy extends ActionProxy
 
     /**
      * @param ActionChain $actionChain
-     * @param Action $action
+     * @param Action|null $action
      */
-    private function triggerCallbacks(Action $action, ActionChain $actionChain): void
+    private function triggerCallbacks(?Action $action, ActionChain $actionChain): void
     {
+        $actionCallback = new ActionCallback($action, $actionChain);
+
         foreach ($this->callbacks as $callback) {
-            $callback($action, $actionChain);
+            $callback($actionCallback);
         }
     }
 }

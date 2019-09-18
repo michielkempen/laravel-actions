@@ -9,6 +9,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use MichielKempen\LaravelActions\Action;
+use MichielKempen\LaravelActions\ActionCallback;
 use MichielKempen\LaravelActions\ActionChain;
 use MichielKempen\LaravelActions\ActionStatus;
 use MichielKempen\LaravelActions\Database\QueuedAction;
@@ -144,16 +145,18 @@ class QueuedActionJob implements ShouldQueue
      */
     private function triggerCallbacks(): void
     {
-        foreach ($this->queuedAction->getCallbacks() as $callback) {
-            $action = $this->queuedAction->getAction();
+        $action = $this->queuedAction->getAction();
+        $actionChain = null;
 
-            if($this->queuedAction->hasChain()) {
-                $queuedActionChain = $this->queuedAction->getChain();
-                $actionChain = ActionChain::createFromQueuedActionChain($queuedActionChain);
-                $callback($action, $actionChain);
-            } else {
-                $callback($action);
-            }
+        if($this->queuedAction->hasChain()) {
+            $queuedActionChain = $this->queuedAction->getChain();
+            $actionChain = ActionChain::createFromQueuedActionChain($queuedActionChain);
+        }
+
+        $actionCallback = new ActionCallback($action, $actionChain);
+
+        foreach ($this->queuedAction->getCallbacks() as $callback) {
+            $callback($actionCallback);
         }
     }
 

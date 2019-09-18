@@ -4,6 +4,8 @@ namespace MichielKempen\LaravelActions\Implementations\Async;
 
 use Illuminate\Database\Eloquent\Model;
 use MichielKempen\LaravelActions\Action;
+use MichielKempen\LaravelActions\ActionCallback;
+use MichielKempen\LaravelActions\ActionChain;
 use MichielKempen\LaravelActions\ActionProxy;
 use MichielKempen\LaravelActions\Database\QueuedAction;
 use MichielKempen\LaravelActions\Database\QueuedActionChain;
@@ -106,8 +108,10 @@ class QueueableActionProxy extends ActionProxy
     private function executeActionChain(array $parameters): QueuedActionChain
     {
         $queuedActionChain = $this->createActionChain($parameters);
-        $queuedActions = $queuedActionChain->getActions();
 
+        $this->triggerCallbacks($queuedActionChain);
+
+        $queuedActions = $queuedActionChain->getActions();
         $queuedAction = $queuedActions->shift();
         $action = $queuedAction->getAction()->instantiateAction();
         $pendingDispatch = dispatch(new QueuedActionJob($action, $queuedAction->getId()));
@@ -145,6 +149,19 @@ class QueueableActionProxy extends ActionProxy
         }
 
         return $queuedActionChain;
+    }
+
+    /**
+     * @param QueuedActionChain $queuedActionChain
+     */
+    private function triggerCallbacks(QueuedActionChain $queuedActionChain): void
+    {
+        $actionChain = ActionChain::createFromQueuedActionChain($queuedActionChain);
+        $actionCallback = new ActionCallback(null, $actionChain);
+
+        foreach ($this->callbacks as $callback) {
+            $callback($actionCallback);
+        }
     }
 
     /**
