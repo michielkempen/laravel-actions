@@ -97,10 +97,10 @@ class QueueableActionProxy extends ActionProxy
         $action = $queuedAction->getAction()->instantiateAction();
         $pendingDispatch = dispatch(new QueuedActionJob($action, $queuedAction->getId()));
 
-        $chainedQueuedActions = $queuedActions->each(function(QueuedAction $queuedAction) {
+        $chainedQueuedActions = $queuedActions->map(function(QueuedAction $queuedAction) {
             $action = $queuedAction->getAction()->instantiateAction();
             return new QueuedActionJob($action, $queuedAction->getId());
-        })->toArray();
+        })->all();
 
         $pendingDispatch->chain($chainedQueuedActions);
 
@@ -117,13 +117,13 @@ class QueueableActionProxy extends ActionProxy
 
         $order = 0;
 
-        $action = Action::createFromAction(get_class($this->action), $parameters);
+        $action = Action::createFromAction($this->action, $parameters);
         $this->queuedActionRepository->createQueuedAction(
             $queuedActionChain->getId(), ++$order, $this->modelType, $this->modelId, $action, $this->callbacks
         );
 
         foreach ($this->chainedActions as $actionClass) {
-            $action = Action::createFromAction($actionClass, $parameters);
+            $action = Action::createFromAction(app($actionClass), $parameters);
             $this->queuedActionRepository->createQueuedAction(
                 $queuedActionChain->getId(), ++$order, $this->modelType, $this->modelId, $action, $this->callbacks
             );
