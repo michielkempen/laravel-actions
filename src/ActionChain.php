@@ -141,12 +141,23 @@ class ActionChain implements Arrayable
     }
 
     /**
+     * @return bool
+     */
+    public function isFinished(): bool
+    {
+        return $this->actions->filter(function(Action $action) {
+            return $action->getStatus() == ActionStatus::PENDING;
+        })->isEmpty();
+    }
+
+    /**
      * @return array
      */
     public function toArray(): array
     {
         return [
             'success' => $this->isSuccessful(),
+            'finished' => $this->isFinished(),
             'actions' => $this->getActions()->toArray(),
         ];
     }
