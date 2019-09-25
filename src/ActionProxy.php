@@ -37,7 +37,7 @@ abstract class ActionProxy
      * @param array $arguments
      * @return ActionProxy
      */
-    public function withCallback(string $class, ...$arguments): self
+    public function withCallback(string $class, array $arguments = []): self
     {
         $this->callbacks[] = [
             'class' => $class,

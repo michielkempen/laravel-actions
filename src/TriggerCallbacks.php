@@ -18,12 +18,8 @@ class TriggerCallbacks
         $actionCallback = new ActionCallback($action, $actionChain);
 
         foreach ($callbacks as $callback) {
-            $class = $callback['class'];
-            $arguments = $callback['arguments'];
-
-            $callbackAction = empty($arguments) ? new $class() : new $class(...$arguments);
-
-            $callbackAction->execute($actionCallback);
+            $callbackInstance = app()->makeWith($callback['class'], $callback['arguments']);
+            $callbackInstance->execute($actionCallback);
         }
     }
 }
