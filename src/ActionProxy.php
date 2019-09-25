@@ -2,8 +2,6 @@
 
 namespace MichielKempen\LaravelActions;
 
-use Closure;
-use Illuminate\Queue\SerializableClosure;
 use MichielKempen\LaravelActions\Implementations\Async\QueueableActionProxy;
 
 abstract class ActionProxy
@@ -35,12 +33,16 @@ abstract class ActionProxy
     }
 
     /**
-     * @param Closure $callback
+     * @param string $class
+     * @param array $arguments
      * @return ActionProxy
      */
-    public function withCallback(Closure $callback): self
+    public function withCallback(string $class, ...$arguments): self
     {
-        $this->callbacks[] = new SerializableClosure($callback);
+        $this->callbacks[] = [
+            'class' => $class,
+            'arguments' => $arguments,
+        ];
 
         return $this;
     }

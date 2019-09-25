@@ -4,13 +4,13 @@ namespace MichielKempen\LaravelActions\Implementations\Async;
 
 use Illuminate\Database\Eloquent\Model;
 use MichielKempen\LaravelActions\Action;
-use MichielKempen\LaravelActions\ActionCallback;
 use MichielKempen\LaravelActions\ActionChain;
 use MichielKempen\LaravelActions\ActionProxy;
 use MichielKempen\LaravelActions\Database\QueuedAction;
 use MichielKempen\LaravelActions\Database\QueuedActionChain;
 use MichielKempen\LaravelActions\Database\QueuedActionChainRepository;
 use MichielKempen\LaravelActions\Database\QueuedActionRepository;
+use MichielKempen\LaravelActions\TriggerCallbacks;
 
 class QueueableActionProxy extends ActionProxy
 {
@@ -159,11 +159,8 @@ class QueueableActionProxy extends ActionProxy
     private function triggerCallbacks(QueuedActionChain $queuedActionChain): void
     {
         $actionChain = ActionChain::createFromQueuedActionChain($queuedActionChain);
-        $actionCallback = new ActionCallback(null, $actionChain);
 
-        foreach ($this->callbacks as $callback) {
-            $callback($actionCallback);
-        }
+        TriggerCallbacks::execute($this->callbacks, null, $actionChain);
     }
 
     /**

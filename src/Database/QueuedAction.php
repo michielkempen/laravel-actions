@@ -5,7 +5,6 @@ namespace MichielKempen\LaravelActions\Database;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use MichielKempen\LaravelActions\Action;
 use MichielKempen\LaravelUuidModel\UuidModel;
-use Opis\Closure\SerializableClosure;
 
 class QueuedAction extends UuidModel
 {
@@ -19,6 +18,7 @@ class QueuedAction extends UuidModel
      */
     protected $casts = [
         'action' => 'array',
+        'callbacks' => 'array',
     ];
 
     /**
@@ -74,35 +74,9 @@ class QueuedAction extends UuidModel
     }
 
     /**
-     * @param $callbacks
-     */
-    public function setCallbacksAttribute(array $callbacks)
-    {
-        $result = array_map(function(SerializableClosure $serializableClosure) {
-            return serialize($serializableClosure);
-        }, $callbacks);
-
-        $this->attributes['callbacks'] = json_encode($result);
-    }
-
-    /**
      * @return array
      */
-    public function getCallbacksAttribute(): array
-    {
-        $result = json_decode($this->attributes['callbacks']);
-
-        $result = array_map(function(string $serializedClosure) {
-            return \Opis\Closure\unserialize($serializedClosure);
-        }, $result);
-
-        return $result;
-    }
-
-    /**
-     * @return array|null
-     */
-    public function getCallbacks(): ?array
+    public function getCallbacks(): array
     {
         return $this->callbacks;
     }
