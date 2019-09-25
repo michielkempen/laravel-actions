@@ -5,6 +5,7 @@ namespace MichielKempen\LaravelActions\Tests\Implementations\Async;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Queue;
 use MichielKempen\LaravelActions\Action;
+use MichielKempen\LaravelActions\ActionCallback;
 use MichielKempen\LaravelActions\ActionChain;
 use MichielKempen\LaravelActions\ActionStatus;
 use MichielKempen\LaravelActions\Database\QueuedActionChain;
@@ -159,8 +160,16 @@ class QueueableActionTest extends TestCase
                 SkipAction::class,
                 ReturnTheParametersAsOutputAction::class,
             ])
-            ->withCallback(function(Action $action) {
-                file_put_contents(TestCase::LOG_PATH, "{$action->getActionClass()} - {$action->getStatus()}", FILE_APPEND);
+            ->withCallback(function(ActionCallback $callback) {
+                if(! $callback->hasAction()) {
+                    return;
+                }
+
+                file_put_contents(
+                    TestCase::LOG_PATH,
+                    "{$callback->getAction()->getActionClass()} - {$callback->getAction()->getStatus()}",
+                    FILE_APPEND
+                );
             })
             ->execute($parameterA, $parameterB);
 
@@ -196,8 +205,16 @@ class QueueableActionTest extends TestCase
         (new ReturnTheParametersAsOutputAction)
             ->queue()
             ->onModel($testModel)
-            ->withCallback(function(Action $action) {
-                file_put_contents(TestCase::LOG_PATH, "{$action->getActionClass()} - {$action->getStatus()}", FILE_APPEND);
+            ->withCallback(function(ActionCallback $callback) {
+                if(! $callback->hasAction()) {
+                    return;
+                }
+
+                file_put_contents(
+                    TestCase::LOG_PATH,
+                    "{$callback->getAction()->getActionClass()} - {$callback->getAction()->getStatus()}",
+                    FILE_APPEND
+                );
             })
             ->execute($parameterA, $parameterB);
 

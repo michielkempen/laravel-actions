@@ -35,10 +35,10 @@ class QueuedActionJob implements ShouldQueue
     private $queuedAction;
 
     /**
-     * @param $action
+     * @param object $action
      * @param string $queuedActionId
      */
-    public function __construct($action, string $queuedActionId)
+    public function __construct(object $action, string $queuedActionId)
     {
         $this->queuedActionRepository = app(QueuedActionRepository::class);
         $this->queuedActionId = $queuedActionId;
@@ -46,9 +46,9 @@ class QueuedActionJob implements ShouldQueue
     }
 
     /**
-     * @param $action
+     * @param object $action
      */
-    private function resolveQueueableProperties($action)
+    private function resolveQueueableProperties(object $action): void
     {
         $queueableProperties = ['connection', 'queue', 'delay', 'tries', 'timeout'];
 
@@ -86,7 +86,7 @@ class QueuedActionJob implements ShouldQueue
     {
         $actionInstance = $action->instantiateAction();
 
-        if($this->queuedAction->hasChain() && $this->shouldSkipAction($actionInstance)) {
+        if($this->shouldSkipAction($actionInstance)) {
             $action->setStatus(ActionStatus::SKIPPED);
             return;
         }
@@ -102,10 +102,10 @@ class QueuedActionJob implements ShouldQueue
     }
 
     /**
-     * @param $actionInstance
+     * @param object $actionInstance
      * @return bool
      */
-    private function shouldSkipAction($actionInstance): bool
+    private function shouldSkipAction(object $actionInstance): bool
     {
         if(! method_exists($actionInstance, 'skip')) {
             return false;
@@ -146,12 +146,9 @@ class QueuedActionJob implements ShouldQueue
     private function triggerCallbacks(): void
     {
         $action = $this->queuedAction->getAction();
-        $actionChain = null;
 
-        if($this->queuedAction->hasChain()) {
-            $queuedActionChain = $this->queuedAction->getChain();
-            $actionChain = ActionChain::createFromQueuedActionChain($queuedActionChain);
-        }
+        $queuedActionChain = $this->queuedAction->getChain();
+        $actionChain = ActionChain::createFromQueuedActionChain($queuedActionChain);
 
         $actionCallback = new ActionCallback($action, $actionChain);
 

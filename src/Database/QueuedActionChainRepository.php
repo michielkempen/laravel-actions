@@ -2,6 +2,8 @@
 
 namespace MichielKempen\LaravelActions\Database;
 
+use Illuminate\Support\Carbon;
+
 class QueuedActionChainRepository
 {
     /**
@@ -25,12 +27,19 @@ class QueuedActionChainRepository
     {
         return $this->model->findOrFail($queuedActionChainId);
     }
-
+    
     /**
+     * @param string|null $modelType
+     * @param string|null $modelId
+     * @param Carbon $createdAt
      * @return QueuedActionChain
      */
-    public function createQueuedActionChain(): QueuedActionChain
+    public function createQueuedActionChain(?string $modelType, ?string $modelId, Carbon $createdAt): QueuedActionChain
     {
-        return $this->model->create();
+        return $this->model->create([
+            'model_id' => $modelId,
+            'model_type' => $modelType,
+            'created_at' => $createdAt,
+        ]);
     }
 }

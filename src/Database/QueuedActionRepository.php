@@ -29,23 +29,17 @@ class QueuedActionRepository
     }
 
     /**
-     * @param string|null $chainId
-     * @param int|null $order
-     * @param string|null $modelType
-     * @param string|null $modelId
+     * @param string $chainId
+     * @param int $order
      * @param Action $action
      * @param array $callbacks
      * @return QueuedAction
      */
-    public function createQueuedAction(
-        ?string $chainId, ?int $order, ?string $modelType, ?string $modelId, Action $action, array $callbacks
-    ): QueuedAction
+    public function createQueuedAction(string $chainId, int $order, Action $action, array $callbacks): QueuedAction
     {
         return $this->model->create([
             'chain_id' => $chainId,
             'order' => $order,
-            'model_id' => $modelId,
-            'model_type' => $modelType,
             'status' => $action->getStatus(),
             'action' => $action->toArray(),
             'callbacks' => $callbacks,

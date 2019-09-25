@@ -31,11 +31,32 @@ class QueuedActionChainRepositoryTest extends TestCase
     }
 
     /** @test */
-    public function it_can_create_a_queued_action_chain()
+    public function it_can_create_a_queued_action_chain_without_model()
     {
+        $createdAt = now();
+
         $repository = new QueuedActionChainRepository;
-        $result = $repository->createQueuedActionChain();
+        $result = $repository->createQueuedActionChain(null, null, $createdAt);
 
         $this->assertInstanceOf(QueuedActionChain::class, $result);
+        $this->assertNull($result->getModelId());
+        $this->assertNull($result->getModelType());
+        $this->assertEquals($createdAt->toIso8601String(), $result->getCreatedAt()->toIso8601String());
+    }
+
+    /** @test */
+    public function it_can_create_a_queued_action_chain_with_model()
+    {
+        $modelId = $this->faker->uuid;
+        $modelType = 'TestModel';
+        $createdAt = now();
+
+        $repository = new QueuedActionChainRepository;
+        $result = $repository->createQueuedActionChain($modelType, $modelId, $createdAt);
+
+        $this->assertInstanceOf(QueuedActionChain::class, $result);
+        $this->assertEquals($modelId, $result->getModelId());
+        $this->assertEquals($modelType, $result->getModelType());
+        $this->assertEquals($createdAt->toIso8601String(), $result->getCreatedAt()->toIso8601String());
     }
 }

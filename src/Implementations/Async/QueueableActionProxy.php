@@ -59,17 +59,32 @@ class QueueableActionProxy extends ActionProxy
 
     /**
      * @param mixed ...$parameters
-     * @return string|null
+     * @return string
      */
-    public function execute(...$parameters): ?string
+    public function execute(...$parameters): string
     {
-        if(empty($this->chainedActions)) {
-            $this->executeAction($parameters);
-            return null;
-        } else {
-            $queuedActionChain = $this->executeActionChain($parameters);
-            return $queuedActionChain->getId();
+        $queuedActionChain = $this->createActionChain($parameters);
+
+        $this->triggerCallbacks($queuedActionChain);
+
+        $queuedActions = $queuedActionChain->getActions();
+        $firstQueuedAction = $queuedActions->shift();
+
+        $pendingDispatch = dispatch(
+            new QueuedActionJob($firstQueuedAction->getAction()->instantiateAction(), $firstQueuedAction->getId())
+        );
+
+        if($queuedActions->isNotEmpty()) {
+            $chainedQueuedActions = $queuedActions
+                ->map(function(QueuedAction $queuedAction) {
+                    return new QueuedActionJob($queuedAction->getAction()->instantiateAction(), $queuedAction->getId());
+                })
+                ->all();
+
+            $pendingDispatch->chain($chainedQueuedActions);
         }
+
+        return $queuedActionChain->getId();
     }
 
     /**
@@ -80,50 +95,15 @@ class QueueableActionProxy extends ActionProxy
     {
         $action = Action::createFromAction($this->action, $parameters);
 
+        $queuedActionChain = $this->queuedActionChainRepository->createQueuedActionChain(
+            $this->modelType, $this->modelId, now()
+        );
+
         $queuedAction = $this->queuedActionRepository->createQueuedAction(
-            null, null, $this->modelType, $this->modelId, $action, $this->callbacks
+            $queuedActionChain->getId(), 1, $action, $this->callbacks
         );
 
         return new QueuedActionJob($action->instantiateAction(), $queuedAction->getId());
-    }
-
-    /**
-     * @param array $parameters
-     */
-    private function executeAction(array $parameters): void
-    {
-        $action = Action::createFromAction($this->action, $parameters);
-
-        $queuedAction = $this->queuedActionRepository->createQueuedAction(
-            null, null, $this->modelType, $this->modelId, $action, $this->callbacks
-        );
-
-        dispatch(new QueuedActionJob($action->instantiateAction(), $queuedAction->getId()));
-    }
-
-    /**
-     * @param array $parameters
-     * @return QueuedActionChain
-     */
-    private function executeActionChain(array $parameters): QueuedActionChain
-    {
-        $queuedActionChain = $this->createActionChain($parameters);
-
-        $this->triggerCallbacks($queuedActionChain);
-
-        $queuedActions = $queuedActionChain->getActions();
-        $queuedAction = $queuedActions->shift();
-        $action = $queuedAction->getAction()->instantiateAction();
-        $pendingDispatch = dispatch(new QueuedActionJob($action, $queuedAction->getId()));
-
-        $chainedQueuedActions = $queuedActions->map(function(QueuedAction $queuedAction) {
-            $action = $queuedAction->getAction()->instantiateAction();
-            return new QueuedActionJob($action, $queuedAction->getId());
-        })->all();
-
-        $pendingDispatch->chain($chainedQueuedActions);
-
-        return $queuedActionChain;
     }
 
     /**
@@ -132,19 +112,21 @@ class QueueableActionProxy extends ActionProxy
      */
     private function createActionChain(array $parameters): QueuedActionChain
     {
-        $queuedActionChain = $this->queuedActionChainRepository->createQueuedActionChain();
+        $queuedActionChain = $this->queuedActionChainRepository->createQueuedActionChain(
+            $this->modelType, $this->modelId, now()
+        );
 
         $order = 0;
 
         $action = Action::createFromAction($this->action, $parameters);
         $this->queuedActionRepository->createQueuedAction(
-            $queuedActionChain->getId(), ++$order, $this->modelType, $this->modelId, $action, $this->callbacks
+            $queuedActionChain->getId(), ++$order, $action, $this->callbacks
         );
 
         foreach ($this->chainedActions as $actionClass) {
             $action = Action::createFromAction(app($actionClass), $parameters);
             $this->queuedActionRepository->createQueuedAction(
-                $queuedActionChain->getId(), ++$order, $this->modelType, $this->modelId, $action, $this->callbacks
+                $queuedActionChain->getId(), ++$order, $action, $this->callbacks
             );
         }
 

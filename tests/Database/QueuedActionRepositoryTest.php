@@ -9,6 +9,7 @@ use MichielKempen\LaravelActions\ActionStatus;
 use MichielKempen\LaravelActions\Database\QueuedAction;
 use MichielKempen\LaravelActions\Database\QueuedActionChain;
 use MichielKempen\LaravelActions\Database\QueuedActionRepository;
+use MichielKempen\LaravelActions\Tests\TestCase\Actions\ReturnTheParametersAsOutputAction;
 use MichielKempen\LaravelActions\Tests\TestCase\SimpleAction;
 use MichielKempen\LaravelActions\Tests\TestCase\TestCase;
 use Opis\Closure\SerializableClosure;
@@ -44,8 +45,8 @@ class QueuedActionRepositoryTest extends TestCase
         $startedAt = Carbon::now()->subMinutes(5);
         $finishedAt = Carbon::now()->subMinutes(3);
         $action = new Action(
-            SimpleAction::class, [5, 'parameter'], 'send email', ActionStatus::PENDING, 'output', $startedAt,
-            $finishedAt
+            ReturnTheParametersAsOutputAction::class, [5, 'parameter'], 'send email', ActionStatus::PENDING, 'output',
+            $startedAt, $finishedAt
         );
         $callbacks = [
             new SerializableClosure(function(Action $action) {
@@ -54,26 +55,21 @@ class QueuedActionRepositoryTest extends TestCase
         ];
         
         $repository = new QueuedActionRepository;
-        $result = $repository->createQueuedAction(
-            $queuedActionChain->id, 2, 'TestModel', $modelId, $action, $callbacks
-        );
+        $result = $repository->createQueuedAction($queuedActionChain->id, 2, $action, $callbacks);
 
         $this->assertInstanceOf(QueuedAction::class, $result);
-        $this->assertTrue($result->hasChain());
         $this->assertEquals($queuedActionChain->id, $result->getChainId());
         $chain = $result->getChain();
         $this->assertInstanceOf(QueuedActionChain::class, $chain);
         $this->assertEquals($queuedActionChain->getId(), $chain->getId());
         $this->assertEquals(2, $result->getOrder());
-        $this->assertEquals($modelId, $result->getModelId());
-        $this->assertEquals('TestModel', $result->getModelType());
         $this->assertEquals(ActionStatus::PENDING, $result->getStatus());
         $this->assertEquals(count($callbacks), count($result->getCallbacks()));
         $this->assertEquals($callbacks[0]($action), $result->getCallbacks()[0]($action));
         $this->assertEquals('pending', $callbacks[0]($action));
         $action = $result->getAction();
         $this->assertInstanceOf(Action::class, $action);
-        $this->assertEquals(SimpleAction::class, $action->getActionClass());
+        $this->assertEquals(ReturnTheParametersAsOutputAction::class, $action->getActionClass());
         $this->assertEquals([5, 'parameter'], $action->getParameters());
         $this->assertEquals('send email', $action->getName());
         $this->assertEquals(ActionStatus::PENDING, $action->getStatus());
@@ -87,7 +83,7 @@ class QueuedActionRepositoryTest extends TestCase
     public function it_can_update_an_existing_queued_action()
     {
         $oldAction = new Action(
-            SimpleAction::class, [5, 'parameter'], 'send email', ActionStatus::PENDING
+            ReturnTheParametersAsOutputAction::class, [5, 'parameter'], 'send email', ActionStatus::PENDING
         );
 
         $queuedAction = factory(QueuedAction::class)->create([
@@ -97,8 +93,8 @@ class QueuedActionRepositoryTest extends TestCase
         $startedAt = Carbon::now()->subMinutes(5);
         $finishedAt = Carbon::now()->subMinutes(3);
         $updatedAction = new Action(
-            SimpleAction::class, [5, 'parameter'], 'send email', ActionStatus::SUCCEEDED, 'output', $startedAt,
-            $finishedAt
+            ReturnTheParametersAsOutputAction::class, [5, 'parameter'], 'send email', ActionStatus::SUCCEEDED, 'output',
+            $startedAt, $finishedAt
         );
 
         $repository = new QueuedActionRepository;
@@ -108,7 +104,7 @@ class QueuedActionRepositoryTest extends TestCase
         $this->assertEquals(ActionStatus::SUCCEEDED, $result->getStatus());
         $updatedAction = $result->getAction();
         $this->assertInstanceOf(Action::class, $updatedAction);
-        $this->assertEquals(SimpleAction::class, $updatedAction->getActionClass());
+        $this->assertEquals(ReturnTheParametersAsOutputAction::class, $updatedAction->getActionClass());
         $this->assertEquals([5, 'parameter'], $updatedAction->getParameters());
         $this->assertEquals('send email', $updatedAction->getName());
         $this->assertEquals(ActionStatus::SUCCEEDED, $updatedAction->getStatus());
@@ -126,8 +122,8 @@ class QueuedActionRepositoryTest extends TestCase
         $startedAt = Carbon::now()->subMinutes(5);
         $finishedAt = Carbon::now()->subMinutes(3);
         $action = new Action(
-            SimpleAction::class, [5, 'parameter'], 'send email', ActionStatus::PENDING, 'output', $startedAt,
-            $finishedAt
+            ReturnTheParametersAsOutputAction::class, [5, 'parameter'], 'send email', ActionStatus::PENDING, 'output',
+            $startedAt, $finishedAt
         );
 
         $repository = new QueuedActionRepository;

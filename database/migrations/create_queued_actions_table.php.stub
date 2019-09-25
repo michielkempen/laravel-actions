@@ -16,26 +16,29 @@ class CreateQueuedActionsTable extends Migration
         Schema::create('queued_action_chains', function (Blueprint $table) {
             // fields
             $table->uuid('id');
+            // tracking
+            $table->string('model_type')->nullable();
+            $table->uuid('model_id')->nullable();
+            // date
+            $table->timestamp('created_at');
             // indices
             $table->primary('id');
+            $table->index(['model_type', 'model_id']);
         });
 
         Schema::create('queued_actions', function (Blueprint $table) {
             $table->uuid('id');
             // chaining
             $table->uuid('chain_id')->nullable();
-            $table->integer('order')->nullable();
-            // tracking
-            $table->uuid('model_id')->nullable();
-            $table->string('model_type')->nullable();
+            $table->integer('order');
             // action
             $table->string('status', 16);
-            $table->text('action')->nullable();
+            $table->text('action');
             // callback
             $table->text('callbacks')->nullable();
             // indices
             $table->primary('id');
-            $table->index(['model_type', 'model_id', 'status']);
+            $table->index(['chain_id', 'status']);
             $table->foreign('chain_id')->references('id')->on('queued_action_chains');
         });
     }
