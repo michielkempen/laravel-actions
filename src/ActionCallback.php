@@ -2,6 +2,8 @@
 
 namespace MichielKempen\LaravelActions;
 
+use MichielKempen\LaravelActions\Database\QueuedActionChain;
+
 class ActionCallback
 {
     /**
@@ -15,13 +17,20 @@ class ActionCallback
     private $actionChain;
 
     /**
+     * @var QueuedActionChain|null
+     */
+    private $queuedActionChain;
+
+    /**
      * @param Action|null $action
      * @param ActionChain|null $actionChain
+     * @param QueuedActionChain|null $queuedActionChain
      */
-    public function __construct(?Action $action, ?ActionChain $actionChain)
+    public function __construct(?Action $action, ?ActionChain $actionChain, ?QueuedActionChain $queuedActionChain)
     {
         $this->action = $action;
         $this->actionChain = $actionChain;
+        $this->queuedActionChain = $queuedActionChain;
     }
 
     /**
@@ -54,5 +63,21 @@ class ActionCallback
     public function getActionChain(): ?ActionChain
     {
         return $this->actionChain;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasQueuedActionChain(): bool
+    {
+        return ! is_null($this->queuedActionChain);
+    }
+
+    /**
+     * @return QueuedActionChain|null
+     */
+    public function getQueuedActionChain(): ?QueuedActionChain
+    {
+        return $this->queuedActionChain;
     }
 }

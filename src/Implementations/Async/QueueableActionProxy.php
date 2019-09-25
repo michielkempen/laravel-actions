@@ -4,6 +4,7 @@ namespace MichielKempen\LaravelActions\Implementations\Async;
 
 use Illuminate\Database\Eloquent\Model;
 use MichielKempen\LaravelActions\Action;
+use MichielKempen\LaravelActions\ActionCallback;
 use MichielKempen\LaravelActions\ActionChain;
 use MichielKempen\LaravelActions\ActionProxy;
 use MichielKempen\LaravelActions\Database\QueuedAction;
@@ -160,7 +161,9 @@ class QueueableActionProxy extends ActionProxy
     {
         $actionChain = ActionChain::createFromQueuedActionChain($queuedActionChain);
 
-        TriggerCallbacks::execute($this->callbacks, null, $actionChain);
+        $actionCallback = new ActionCallback(null, $actionChain, $queuedActionChain);
+
+        TriggerCallbacks::execute($this->callbacks, $actionCallback);
     }
 
     /**

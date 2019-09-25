@@ -6,16 +6,13 @@ class TriggerCallbacks
 {
     /**
      * @param array $callbacks
-     * @param Action|null $action
-     * @param ActionChain|null $actionChain
+     * @param ActionCallback $actionCallback
      */
-    public static function execute(array $callbacks, ?Action $action, ?ActionChain $actionChain): void
+    public static function execute(array $callbacks, ActionCallback $actionCallback): void
     {
         if(empty($callbacks)) {
             return;
         }
-
-        $actionCallback = new ActionCallback($action, $actionChain);
 
         foreach ($callbacks as $callback) {
             $callbackInstance = app()->makeWith($callback['class'], $callback['arguments']);
