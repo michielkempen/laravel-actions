@@ -33,12 +33,14 @@ class QueuedActionChainRepositoryTest extends TestCase
     /** @test */
     public function it_can_create_a_queued_action_chain_without_model()
     {
+        $name = "Task";
         $createdAt = now();
 
         $repository = new QueuedActionChainRepository;
-        $result = $repository->createQueuedActionChain(null, null, $createdAt);
+        $result = $repository->createQueuedActionChain($name, null, null, $createdAt);
 
         $this->assertInstanceOf(QueuedActionChain::class, $result);
+        $this->assertEquals($name, $result->getName());
         $this->assertNull($result->getModelId());
         $this->assertNull($result->getModelType());
         $this->assertEquals($createdAt->toIso8601String(), $result->getCreatedAt()->toIso8601String());
@@ -47,14 +49,16 @@ class QueuedActionChainRepositoryTest extends TestCase
     /** @test */
     public function it_can_create_a_queued_action_chain_with_model()
     {
+        $name = "Task";
         $modelId = $this->faker->uuid;
         $modelType = 'TestModel';
         $createdAt = now();
 
         $repository = new QueuedActionChainRepository;
-        $result = $repository->createQueuedActionChain($modelType, $modelId, $createdAt);
+        $result = $repository->createQueuedActionChain($name, $modelType, $modelId, $createdAt);
 
         $this->assertInstanceOf(QueuedActionChain::class, $result);
+        $this->assertEquals($name, $result->getName());
         $this->assertEquals($modelId, $result->getModelId());
         $this->assertEquals($modelType, $result->getModelType());
         $this->assertEquals($createdAt->toIso8601String(), $result->getCreatedAt()->toIso8601String());

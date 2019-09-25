@@ -27,6 +27,11 @@ class QueueableActionProxy extends ActionProxy
     /**
      * @var string|null
      */
+    protected $name;
+
+    /**
+     * @var string|null
+     */
     protected $modelType;
 
     /**
@@ -43,6 +48,17 @@ class QueueableActionProxy extends ActionProxy
 
         $this->queuedActionRepository = app(QueuedActionRepository::class);
         $this->queuedActionChainRepository = app(QueuedActionChainRepository::class);
+    }
+
+    /**
+     * @param string $name
+     * @return QueueableActionProxy
+     */
+    public function withName(string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
     }
 
     /**
@@ -93,11 +109,13 @@ class QueueableActionProxy extends ActionProxy
      */
     public function getJob(...$parameters): QueuedActionJob
     {
-        $action = Action::createFromAction($this->action, $parameters);
+        $name = $this->name ?? Action::parseName($this->action);
 
         $queuedActionChain = $this->queuedActionChainRepository->createQueuedActionChain(
-            $this->modelType, $this->modelId, now()
+            $name, $this->modelType, $this->modelId, now()
         );
+
+        $action = Action::createFromAction($this->action, $parameters);
 
         $queuedAction = $this->queuedActionRepository->createQueuedAction(
             $queuedActionChain->getId(), 1, $action, $this->callbacks
@@ -112,8 +130,10 @@ class QueueableActionProxy extends ActionProxy
      */
     private function createActionChain(array $parameters): QueuedActionChain
     {
+        $name = $this->name ?? Action::parseName($this->action);
+
         $queuedActionChain = $this->queuedActionChainRepository->createQueuedActionChain(
-            $this->modelType, $this->modelId, now()
+            $name, $this->modelType, $this->modelId, now()
         );
 
         $order = 0;

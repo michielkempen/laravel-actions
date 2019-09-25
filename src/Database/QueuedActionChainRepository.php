@@ -27,16 +27,20 @@ class QueuedActionChainRepository
     {
         return $this->model->findOrFail($queuedActionChainId);
     }
-    
+
     /**
+     * @param string $name
      * @param string|null $modelType
      * @param string|null $modelId
      * @param Carbon $createdAt
      * @return QueuedActionChain
      */
-    public function createQueuedActionChain(?string $modelType, ?string $modelId, Carbon $createdAt): QueuedActionChain
+    public function createQueuedActionChain(
+        string $name, ?string $modelType, ?string $modelId, Carbon $createdAt
+    ): QueuedActionChain
     {
         return $this->model->create([
+            'name' => $name,
             'model_id' => $modelId,
             'model_type' => $modelType,
             'created_at' => $createdAt,

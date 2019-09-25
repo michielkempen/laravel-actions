@@ -38,6 +38,14 @@ class QueuedActionChain extends UuidModel
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    /**
      * @return string|null
      */
     public function getModelId(): ?string
