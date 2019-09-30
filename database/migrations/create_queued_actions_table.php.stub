@@ -40,7 +40,7 @@ class CreateQueuedActionsTable extends Migration
             // indices
             $table->primary('id');
             $table->index(['chain_id', 'status']);
-            $table->foreign('chain_id')->references('id')->on('queued_action_chains');
+            $table->foreign('chain_id')->references('id')->on('queued_action_chains')->onDelete('cascade');
         });
     }
 }

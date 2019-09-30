@@ -2,7 +2,6 @@
 
 namespace MichielKempen\LaravelActions\Implementations\Async;
 
-use Exception as PhpException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -15,6 +14,7 @@ use MichielKempen\LaravelActions\ActionStatus;
 use MichielKempen\LaravelActions\Database\QueuedAction;
 use MichielKempen\LaravelActions\Database\QueuedActionRepository;
 use MichielKempen\LaravelActions\TriggerCallbacks;
+use Throwable;
 
 class QueuedActionJob implements ShouldQueue
 {
@@ -94,7 +94,7 @@ class QueuedActionJob implements ShouldQueue
 
         try {
             $output = $actionInstance->execute(...$action->getParameters());
-        } catch (PhpException $exception) {
+        } catch (Throwable $exception) {
             $action->setStatus(ActionStatus::FAILED)->setOutput($exception->getMessage());
             return;
         }
