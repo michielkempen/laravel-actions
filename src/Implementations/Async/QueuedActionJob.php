@@ -2,6 +2,7 @@
 
 namespace MichielKempen\LaravelActions\Implementations\Async;
 
+use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -116,9 +117,9 @@ class QueuedActionJob implements ShouldQueue
     }
 
     /**
-     * @param PhpException $exception
+     * @param Exception $exception
      */
-    public function failed(PhpException $exception)
+    public function failed(Exception $exception)
     {
         $this->queuedAction = $this->queuedActionRepository->getQueuedActionOrFail($this->queuedActionId);
 
