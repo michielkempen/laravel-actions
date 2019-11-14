@@ -52,6 +52,9 @@ class QueuedActionChainRepository
      */
     public function pruneQueuedActionChains(): void
     {
-        $this->model->where('created_at', '<', Carbon::now()->subHours(3)->toDateTimeString())->delete();
+        $this->model
+            ->newQuery()
+            ->where('created_at', '<', Carbon::now()->subHours(3)->toDateTimeString())
+            ->delete();
     }
 }

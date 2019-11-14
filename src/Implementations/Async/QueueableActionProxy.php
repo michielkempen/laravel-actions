@@ -105,27 +105,6 @@ class QueueableActionProxy extends ActionProxy
     }
 
     /**
-     * @param mixed ...$parameters
-     * @return QueuedActionJob
-     */
-    public function getJob(...$parameters): QueuedActionJob
-    {
-        $name = $this->name ?? Action::parseName($this->action);
-
-        $queuedActionChain = $this->queuedActionChainRepository->createQueuedActionChain(
-            $name, $this->modelType, $this->modelId, now()
-        );
-
-        $action = Action::createFromAction($this->action, $parameters);
-
-        $queuedAction = $this->queuedActionRepository->createQueuedAction(
-            $queuedActionChain->getId(), 1, $action, $this->callbacks
-        );
-
-        return new QueuedActionJob($action->instantiateAction(), $queuedAction->getId());
-    }
-
-    /**
      * @param array $parameters
      * @return QueuedActionChain
      */

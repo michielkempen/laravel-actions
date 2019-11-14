@@ -3,9 +3,7 @@
 namespace MichielKempen\LaravelActions\Tests\Implementations\Async;
 
 use MichielKempen\LaravelActions\Action;
-use MichielKempen\LaravelActions\Database\QueuedAction;
 use MichielKempen\LaravelActions\Implementations\Async\QueueableActionProxy;
-use MichielKempen\LaravelActions\Implementations\Async\QueuedActionJob;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\ReturnTheParametersAsOutputAction;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\SkipAction;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\ThrowAnExceptionAction;
@@ -60,22 +58,5 @@ class QueueableActionProxyTest extends TestCase
         $action = Action::createFromAction($actionA, ['hello', 'world']);
         $this->assertEquals($callbackA($action), $callbacks[0]($action));
         $this->assertEquals($callbackB($action), $callbacks[1]($action));
-    }
-
-    /** @test */
-    public function it_can_instantiate_a_queued_action_job()
-    {
-        $action = new ReturnTheParametersAsOutputAction;
-
-        $job = (new QueueableActionProxy($action))->getJob('hello', 'world');
-
-        $this->assertInstanceOf(QueuedActionJob::class, $job);
-
-        $queuedActionId = $job->getQueuedActionId();
-        /** @var QueuedAction $queuedAction */
-        $queuedAction = QueuedAction::findOrFail($queuedActionId);
-
-        $this->assertEquals(ReturnTheParametersAsOutputAction::class, $queuedAction->getAction()->getActionClass());
-        $this->assertEquals(['hello', 'world'], $queuedAction->getAction()->getParameters());
     }
 }
