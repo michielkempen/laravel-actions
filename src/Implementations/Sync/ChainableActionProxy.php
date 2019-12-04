@@ -69,14 +69,29 @@ class ChainableActionProxy extends ActionProxy
             return;
         }
 
-        try {
-            $output = $actionInstance->execute(...$action->getParameters());
-        } catch (PhpException $exception) {
-            $action->setStatus(ActionStatus::FAILED)->setOutput($exception->getMessage());
-            return;
-        }
+        // get the maximum number of attempts specified by the user in the action class
+        // if no number is specified, default to the number specified in the config file
+        $maxAttempts = $actionInstance->attempts ?? config('actions.default_attempts');
 
-        $action->setStatus(ActionStatus::SUCCEEDED)->setOutput($output);
+        for($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            try {
+                // execute the action
+                $output = $actionInstance->execute(...$action->getParameters());
+                // if the action succeeds, mark the action as successful
+                $action->setStatus(ActionStatus::SUCCEEDED)->setOutput($output);
+                //and stop the execution
+                return;
+            } catch (PhpException $exception) {
+                // if the action fails, try again
+                if($attempt < $maxAttempts) {
+                    continue;
+                }
+                // if there are no attempts left, mark the action as failed
+                $action->setStatus(ActionStatus::FAILED)->setOutput($exception->getMessage());
+                // and stop the execution
+                return;
+            }
+        }
     }
 
     /**
