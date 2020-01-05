@@ -6,35 +6,18 @@ use MichielKempen\LaravelActions\Action;
 
 class QueuedActionRepository
 {
-    /**
-     * @var QueuedAction
-     */
-    private $model;
+    private QueuedAction $model;
 
-    /**
-     * QueuedActionRepository constructor.
-     */
     public function __construct()
     {
         $this->model = app(QueuedAction::class);
     }
 
-    /**
-     * @param string $queuedActionId
-     * @return QueuedAction
-     */
     public function getQueuedActionOrFail(string $queuedActionId): QueuedAction
     {
         return $this->model->findOrFail($queuedActionId);
     }
 
-    /**
-     * @param string $chainId
-     * @param int $order
-     * @param Action $action
-     * @param array $callbacks
-     * @return QueuedAction
-     */
     public function createQueuedAction(string $chainId, int $order, Action $action, array $callbacks): QueuedAction
     {
         return $this->model->create([
@@ -46,11 +29,6 @@ class QueuedActionRepository
         ]);
     }
 
-    /**
-     * @param string $queuedActionId
-     * @param Action $action
-     * @return QueuedAction
-     */
     public function updateQueuedAction(string $queuedActionId, Action $action): QueuedAction
     {
         $queuedAction = $this->getQueuedActionOrFail($queuedActionId);

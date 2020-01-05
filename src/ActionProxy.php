@@ -2,42 +2,19 @@
 
 namespace MichielKempen\LaravelActions;
 
-use MichielKempen\LaravelActions\Implementations\Async\QueueableActionProxy;
-
 abstract class ActionProxy
 {
-    /**
-     * @var object
-     */
-    protected $action;
+    protected object $action;
+    protected array $chainedActions = [];
+    protected array $callbacks = [];
 
-    /**
-     * @var array
-     */
-    protected $chainedActions = [];
-
-    /**
-     * @var array
-     */
-    protected $callbacks = [];
-
-    /**
-     * ActionProxy constructor.
-     * @param object $action
-     * @param array $chainedActions
-     */
     public function __construct(object $action, array $chainedActions = [])
     {
         $this->action = $action;
         $this->chainedActions = $chainedActions;
     }
 
-    /**
-     * @param string $class
-     * @param array $arguments
-     * @return ActionProxy
-     */
-    public function withCallback(string $class, array $arguments = []): self
+    public function withCallback(string $class, array $arguments = []): ActionProxy
     {
         $this->callbacks[] = [
             'class' => $class,
@@ -47,41 +24,25 @@ abstract class ActionProxy
         return $this;
     }
 
-    /**
-     * @param array $actions
-     * @return QueueableActionProxy
-     */
-    public function chain(array $actions): self
+    public function chain(array $actions): ActionProxy
     {
         $this->chainedActions = array_merge($this->chainedActions, $actions);
 
         return $this;
     }
 
-    /**
-     * @param mixed ...$parameters
-     */
     public abstract function execute(...$parameters);
 
-    /**
-     * @return object
-     */
     public function getAction(): object
     {
         return $this->action;
     }
 
-    /**
-     * @return array
-     */
     public function getChainedActions(): array
     {
         return $this->chainedActions;
     }
 
-    /**
-     * @return array
-     */
     public function getCallbacks(): array
     {
         return $this->callbacks;

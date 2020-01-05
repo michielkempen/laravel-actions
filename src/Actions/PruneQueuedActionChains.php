@@ -9,22 +9,13 @@ class PruneQueuedActionChains
 {
     use QueueableAction;
 
-    /**
-     * @var QueuedActionChainRepository
-     */
-    private $queuedActionChainRepository;
+    private QueuedActionChainRepository $queuedActionChainRepository;
 
-    /**
-     * CancelTimedOutActions constructor.
-     */
     public function __construct()
     {
         $this->queuedActionChainRepository = app(QueuedActionChainRepository::class);
     }
 
-    /**
-     *
-     */
     public function execute(): void
     {
         $this->queuedActionChainRepository->pruneQueuedActionChains();

@@ -8,50 +8,14 @@ use Illuminate\Support\Str;
 
 class Action implements Arrayable
 {
-    /**
-     * @var string
-     */
-    private $actionClass;
+    private string $actionClass;
+    private array $parameters;
+    private string $name;
+    private string $status;
+    private ?string $output;
+    private ?Carbon $startedAt;
+    private ?Carbon $finishedAt;
 
-    /**
-     * @var array
-     */
-    private $parameters;
-
-    /**
-     * @var string
-     */
-    private $name;
-
-    /**
-     * @var string
-     */
-    private $status;
-
-    /**
-     * @var string|null
-     */
-    private $output;
-
-    /**
-     * @var Carbon|null
-     */
-    private $startedAt;
-
-    /**
-     * @var Carbon|null
-     */
-    private $finishedAt;
-
-    /**
-     * @param string $actionClass
-     * @param array $parameters
-     * @param string $name
-     * @param string $status
-     * @param array|string|null $output
-     * @param Carbon|null $startedAt
-     * @param Carbon|null $finishedAt
-     */
     public function __construct(
         string $actionClass, array $parameters, string $name, string $status, $output = null, ?Carbon $startedAt = null,
         ?Carbon $finishedAt = null
@@ -66,11 +30,7 @@ class Action implements Arrayable
         $this->finishedAt = $finishedAt;
     }
 
-    /**
-     * @param array $serialization
-     * @return Action
-     */
-    public static function createFromSerialization(array $serialization): self
+    public static function createFromSerialization(array $serialization): Action
     {
         $startedAt = $serialization['started_at'];
         $finishedAt = $serialization['finished_at'];
@@ -86,12 +46,7 @@ class Action implements Arrayable
         );
     }
 
-    /**
-     * @param $action
-     * @param array $parameters
-     * @return Action
-     */
-    public static function createFromAction(object $action, array $parameters = []) : Action
+    public static function createFromAction(object $action, array $parameters = []): Action
     {
         $actionClass = get_class($action);
         $name = self::parseName($action);
@@ -100,10 +55,6 @@ class Action implements Arrayable
         return new static($actionClass, $parameters, $name, $status);
     }
 
-    /**
-     * @param $action
-     * @return string
-     */
     public static function parseName(object $action): string
     {
         if(property_exists($action, 'name')) {
@@ -117,117 +68,74 @@ class Action implements Arrayable
         return $name;
     }
 
-    /**
-     * @return string
-     */
     public function getActionClass(): string
     {
         return $this->actionClass;
     }
 
-    /**
-     * @return object
-     */
     public function instantiateAction(): object
     {
         return app($this->actionClass);
     }
 
-    /**
-     * @return array
-     */
     public function getParameters(): array
     {
         return $this->parameters;
     }
 
-    /**
-     * @return string
-     */
     public function getName(): string
     {
         return $this->name;
     }
 
-    /**
-     * @param string $status
-     * @return Action
-     */
-    public function setStatus(string $status): self
+    public function setStatus(string $status): Action
     {
         $this->status = $status;
 
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getStatus(): string
     {
         return $this->status;
     }
 
-    /**
-     * @param mixed $output
-     * @return Action
-     */
-    public function setOutput($output): self
+    public function setOutput($output): Action
     {
         $this->output = $output;
 
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
     public function getOutput()
     {
         return $this->output;
     }
 
-    /**
-     * @param Carbon|null $startedAt
-     * @return Action
-     */
-    public function setStartedAt(?Carbon $startedAt): self
+    public function setStartedAt(?Carbon $startedAt): Action
     {
         $this->startedAt = $startedAt;
 
         return $this;
     }
 
-    /**
-     * @return Carbon|null
-     */
     public function getStartedAt(): ?Carbon
     {
         return $this->startedAt;
     }
 
-    /**
-     * @param Carbon|null $finishedAt
-     * @return Action
-     */
-    public function setFinishedAt(?Carbon $finishedAt): self
+    public function setFinishedAt(?Carbon $finishedAt): Action
     {
         $this->finishedAt = $finishedAt;
 
         return $this;
     }
 
-    /**
-     * @return Carbon|null
-     */
     public function getFinishedAt(): ?Carbon
     {
         return $this->finishedAt;
     }
 
-    /**
-     * @return string|null
-     */
     public function getDuration(): ?string
     {
         if(is_null($this->startedAt) || is_null($this->finishedAt)) {
@@ -237,9 +145,6 @@ class Action implements Arrayable
         return $this->finishedAt->longAbsoluteDiffForHumans($this->startedAt);
     }
 
-    /**
-     * @return array
-     */
     public function toArray(): array
     {
         return [

@@ -15,7 +15,7 @@ class TriggerCallbacks
         }
 
         foreach ($callbacks as $callback) {
-            $callbackInstance = app()->makeWith($callback['class'], $callback['arguments']);
+            $callbackInstance = resolve($callback['class'], $callback['arguments']);
             $callbackInstance->execute($actionCallback);
         }
     }
