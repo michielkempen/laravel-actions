@@ -2,19 +2,19 @@
 
 namespace MichielKempen\LaravelActions\Implementations\Sync;
 
+use Illuminate\Support\Collection;
+use MichielKempen\LaravelActions\Action;
+
 trait ChainableAction
 {
-    /**
-     * @param array $actions
-     * @return ChainableActionProxy
-     */
-    public function chain(array $actions)
+    public function chain(string $class, array $arguments = []): ChainableActionProxy
     {
-        $class = app()->makeWith(ChainableActionProxy::class, [
-            'action' => $this,
-            'chainedActions' => $actions,
-        ]);
+        $chainedActions = new Collection;
+        $chainedActions->add(new Action(resolve($class), $arguments));
 
-        return $class;
+        return resolve(ChainableActionProxy::class, [
+            'actionInstance' => $this,
+            'chainedActions' => $chainedActions,
+        ]);
     }
 }

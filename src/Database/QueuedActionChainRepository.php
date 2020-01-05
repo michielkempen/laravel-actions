@@ -3,6 +3,8 @@
 namespace MichielKempen\LaravelActions\Database;
 
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use MichielKempen\LaravelActions\ActionChainCallback;
 
 class QueuedActionChainRepository
 {
@@ -19,13 +21,14 @@ class QueuedActionChainRepository
     }
 
     public function createQueuedActionChain(
-        string $name, ?string $modelType, ?string $modelId, Carbon $createdAt
+        string $name, ?string $modelType, ?string $modelId, Collection $callbacks, Carbon $createdAt
     ): QueuedActionChain
     {
         return $this->model->create([
             'name' => $name,
             'model_id' => $modelId,
             'model_type' => $modelType,
+            'callbacks' => $callbacks->map(fn(ActionChainCallback $callback) => $callback->serialize())->all(),
             'created_at' => $createdAt,
         ]);
     }

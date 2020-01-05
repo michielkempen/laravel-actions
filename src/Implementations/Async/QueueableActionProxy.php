@@ -3,70 +3,39 @@
 namespace MichielKempen\LaravelActions\Implementations\Async;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use MichielKempen\LaravelActions\Action;
-use MichielKempen\LaravelActions\ActionCallback;
-use MichielKempen\LaravelActions\ActionChain;
+use MichielKempen\LaravelActions\ActionChainReport;
 use MichielKempen\LaravelActions\ActionProxy;
+use MichielKempen\LaravelActions\ActionChainCallback;
 use MichielKempen\LaravelActions\Database\QueuedAction;
 use MichielKempen\LaravelActions\Database\QueuedActionChain;
 use MichielKempen\LaravelActions\Database\QueuedActionChainRepository;
 use MichielKempen\LaravelActions\Database\QueuedActionRepository;
-use MichielKempen\LaravelActions\TriggerCallbacks;
 
 class QueueableActionProxy extends ActionProxy
 {
-    /**
-     * @var QueuedActionRepository
-     */
-    private $queuedActionRepository;
+    private QueuedActionRepository $queuedActionRepository;
+    private QueuedActionChainRepository $queuedActionChainRepository;
+    protected ?string $name = null;
+    protected ?string $modelType = null;
+    protected ?string $modelId = null;
 
-    /**
-     * @var QueuedActionChainRepository
-     */
-    private $queuedActionChainRepository;
-
-    /**
-     * @var string|null
-     */
-    protected $name;
-
-    /**
-     * @var string|null
-     */
-    protected $modelType;
-
-    /**
-     * @var string|null
-     */
-    protected $modelId;
-
-    /**
-     * @param object $action
-     */
-    public function __construct(object $action)
+    public function __construct(object $actionInstance)
     {
-        parent::__construct($action);
-
+        parent::__construct($actionInstance);
         $this->queuedActionRepository = app(QueuedActionRepository::class);
         $this->queuedActionChainRepository = app(QueuedActionChainRepository::class);
     }
 
-    /**
-     * @param string $name
-     * @return QueueableActionProxy
-     */
-    public function withName(string $name): self
+    public function withName(string $name): QueueableActionProxy
     {
         $this->name = $name;
 
         return $this;
     }
 
-    /**
-     * @param Model $model
-     * @return QueueableActionProxy
-     */
-    public function onModel(Model $model): self
+    public function onModel(Model $model): QueueableActionProxy
     {
         $this->modelType = class_basename($model);
         $this->modelId = $model->id;
@@ -74,88 +43,65 @@ class QueueableActionProxy extends ActionProxy
         return $this;
     }
 
-    /**
-     * @param mixed ...$parameters
-     * @return string
-     */
-    public function execute(...$parameters): string
+    public function execute(...$arguments): string
     {
-        $queuedActionChain = $this->createActionChain($parameters);
+        $queuedActionChain = $this->createActionChain($arguments);
 
         $this->triggerCallbacks($queuedActionChain);
 
-        $queuedActions = $queuedActionChain->getActions();
-        $firstQueuedAction = $queuedActions->shift();
+        $queuedActionJobs = $queuedActionChain->getActions()
+            ->map(fn(QueuedAction $queuedAction) => $this->mapQueuedActionToQueuedActionJob($queuedAction));
 
-        $pendingDispatch = dispatch(
-            new QueuedActionJob($firstQueuedAction->getAction()->instantiateAction(), $firstQueuedAction->getId())
-        );
+        list($firstJob, $chainedJobs) = $this->splitCollection($queuedActionJobs);
 
-        if($queuedActions->isNotEmpty()) {
-            $chainedQueuedActions = $queuedActions
-                ->map(function(QueuedAction $queuedAction) {
-                    return new QueuedActionJob($queuedAction->getAction()->instantiateAction(), $queuedAction->getId());
-                })
-                ->all();
-
-            $pendingDispatch->chain($chainedQueuedActions);
-        }
+        dispatch($firstJob)->chain($chainedJobs);
 
         return $queuedActionChain->getId();
     }
 
-    /**
-     * @param array $parameters
-     * @return QueuedActionChain
-     */
-    private function createActionChain(array $parameters): QueuedActionChain
+    private function createActionChain(array $arguments): QueuedActionChain
     {
-        $name = $this->name ?? Action::parseName($this->action);
+        $action = new Action($this->actionInstance, $arguments);
+        $name = $this->name ?? $action->getName();
 
         $queuedActionChain = $this->queuedActionChainRepository->createQueuedActionChain(
-            $name, $this->modelType, $this->modelId, now()
+            $name, $this->modelType, $this->modelId, $this->callbacks, now()
         );
 
-        $order = 0;
+        $this->queuedActionRepository->createQueuedAction($queuedActionChain->getId(), 0, $action);
 
-        $action = Action::createFromAction($this->action, $parameters);
-        $this->queuedActionRepository->createQueuedAction(
-            $queuedActionChain->getId(), ++$order, $action, $this->callbacks
-        );
-
-        foreach ($this->chainedActions as $actionClass) {
-            $action = Action::createFromAction(app($actionClass), $parameters);
-            $this->queuedActionRepository->createQueuedAction(
-                $queuedActionChain->getId(), ++$order, $action, $this->callbacks
-            );
-        }
+        $order = 1;
+        $this->chainedActions->each(function(Action $action) use ($queuedActionChain, &$order) {
+            $this->queuedActionRepository->createQueuedAction($queuedActionChain->getId(), $order++, $action);
+        });
 
         return $queuedActionChain;
     }
 
-    /**
-     * @param QueuedActionChain $queuedActionChain
-     */
     private function triggerCallbacks(QueuedActionChain $queuedActionChain): void
     {
-        $actionChain = ActionChain::createFromQueuedActionChain($queuedActionChain);
+        $actionChainReport = new ActionChainReport(null, $queuedActionChain);
 
-        $actionCallback = new ActionCallback(null, $actionChain, $queuedActionChain);
-
-        TriggerCallbacks::execute($this->callbacks, $actionCallback);
+        $this->callbacks->each(fn(ActionChainCallback $callback) => $callback->trigger($actionChainReport));
     }
 
-    /**
-     * @return string|null
-     */
+    private function splitCollection(Collection $actionChainJobs): array
+    {
+        $firstQueuedAction = $actionChainJobs->shift();
+
+        return array($firstQueuedAction, $actionChainJobs->all());
+    }
+
+    private function mapQueuedActionToQueuedActionJob(QueuedAction $queuedAction): QueuedActionJob
+    {
+        return new QueuedActionJob($queuedAction->instantiate(), $queuedAction->getId());
+    }
+
     public function getModelType(): ?string
     {
         return $this->modelType;
     }
 
-    /**
-     * @return string|null
-     */
     public function getModelId(): ?string
     {
         return $this->modelId;

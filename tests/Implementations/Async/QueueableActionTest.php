@@ -5,14 +5,16 @@ namespace MichielKempen\LaravelActions\Tests\Implementations\Async;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Queue;
 use MichielKempen\LaravelActions\Action;
-use MichielKempen\LaravelActions\ActionCallback;
+use MichielKempen\LaravelActions\ActionChainReport;
 use MichielKempen\LaravelActions\ActionChain;
 use MichielKempen\LaravelActions\ActionStatus;
+use MichielKempen\LaravelActions\Database\QueuedAction;
 use MichielKempen\LaravelActions\Database\QueuedActionChain;
 use MichielKempen\LaravelActions\Implementations\Async\QueuedActionJob;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\ReturnTheParametersAsOutputAction;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\SkipAction;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\ThrowAnExceptionAction;
+use MichielKempen\LaravelActions\Tests\TestCase\Callbacks\LogCallback;
 use MichielKempen\LaravelActions\Tests\TestCase\TestCase;
 use MichielKempen\LaravelActions\Tests\TestCase\TestModel;
 
@@ -26,36 +28,33 @@ class QueueableActionTest extends TestCase
 
         $queuedActionChainId = (new ReturnTheParametersAsOutputAction)
             ->queue()
-            ->chain([
-                ReturnTheParametersAsOutputAction::class,
-                ReturnTheParametersAsOutputAction::class,
-            ])
+            ->chain(ReturnTheParametersAsOutputAction::class, compact('parameterA', 'parameterB'))
+            ->chain(ReturnTheParametersAsOutputAction::class, compact('parameterA', 'parameterB'))
             ->execute($parameterA, $parameterB);
 
-        $queuedActionChain = QueuedActionChain::findOrFail($queuedActionChainId);
-        $actionChain = ActionChain::createFromQueuedActionChain($queuedActionChain);
+        $actionChain = QueuedActionChain::findOrFail($queuedActionChainId);
 
-        $this->assertInstanceOf(ActionChain::class, $actionChain);
+        $this->assertInstanceOf(QueuedActionChain::class, $actionChain);
         $this->assertInstanceOf(Collection::class, $actionChain->getActions());
         $this->assertEquals(3, $actionChain->getNumberOfActions());
 
         $action = $actionChain->getNthAction(1);
-        $this->assertInstanceOf(Action::class, $action);
-        $this->assertEquals(ReturnTheParametersAsOutputAction::class, $action->getActionClass());
+        $this->assertInstanceOf(QueuedAction::class, $action);
+        $this->assertEquals(ReturnTheParametersAsOutputAction::class, $action->getClass());
         $this->assertEquals("return the parameters as output", $action->getName());
         $this->assertEquals(ActionStatus::SUCCEEDED, $action->getStatus());
         $this->assertEquals([$parameterA, $parameterB], $action->getOutput());
 
         $action = $actionChain->getNthAction(2);
-        $this->assertInstanceOf(Action::class, $action);
-        $this->assertEquals(ReturnTheParametersAsOutputAction::class, $action->getActionClass());
+        $this->assertInstanceOf(QueuedAction::class, $action);
+        $this->assertEquals(ReturnTheParametersAsOutputAction::class, $action->getClass());
         $this->assertEquals("return the parameters as output", $action->getName());
         $this->assertEquals(ActionStatus::SUCCEEDED, $action->getStatus());
         $this->assertEquals([$parameterA, $parameterB], $action->getOutput());
 
         $action = $actionChain->getNthAction(3);
-        $this->assertInstanceOf(Action::class, $action);
-        $this->assertEquals(ReturnTheParametersAsOutputAction::class, $action->getActionClass());
+        $this->assertInstanceOf(QueuedAction::class, $action);
+        $this->assertEquals(ReturnTheParametersAsOutputAction::class, $action->getClass());
         $this->assertEquals("return the parameters as output", $action->getName());
         $this->assertEquals(ActionStatus::SUCCEEDED, $action->getStatus());
         $this->assertEquals([$parameterA, $parameterB], $action->getOutput());
@@ -71,12 +70,10 @@ class QueueableActionTest extends TestCase
 
         (new ReturnTheParametersAsOutputAction)
             ->queue()
-            ->chain([
-                SkipAction::class,
-                ThrowAnExceptionAction::class,
-                SkipAction::class,
-                ReturnTheParametersAsOutputAction::class,
-            ])
+            ->chain(SkipAction::class)
+            ->chain(ThrowAnExceptionAction::class)
+            ->chain(SkipAction::class)
+            ->chain(ReturnTheParametersAsOutputAction::class, compact('parameterA', 'parameterB'))
             ->execute($parameterA, $parameterB);
 
         Queue::assertPushedWithChain(QueuedActionJob::class, [
@@ -95,52 +92,49 @@ class QueueableActionTest extends TestCase
 
         $queuedActionChainId = (new ReturnTheParametersAsOutputAction)
             ->queue()
-            ->chain([
-                SkipAction::class,
-                ThrowAnExceptionAction::class,
-                SkipAction::class,
-                ReturnTheParametersAsOutputAction::class,
-            ])
+            ->chain(SkipAction::class)
+            ->chain(ThrowAnExceptionAction::class)
+            ->chain(SkipAction::class)
+            ->chain(ReturnTheParametersAsOutputAction::class, compact('parameterA', 'parameterB'))
             ->execute($parameterA, $parameterB);
 
-        $queuedActionChain = QueuedActionChain::findOrFail($queuedActionChainId);
-        $actionChain = ActionChain::createFromQueuedActionChain($queuedActionChain);
+        $actionChain = QueuedActionChain::findOrFail($queuedActionChainId);
 
-        $this->assertInstanceOf(ActionChain::class, $actionChain);
+        $this->assertInstanceOf(QueuedActionChain::class, $actionChain);
         $this->assertInstanceOf(Collection::class, $actionChain->getActions());
         $this->assertEquals(5, $actionChain->getNumberOfActions());
 
         $action = $actionChain->getNthAction(1);
-        $this->assertInstanceOf(Action::class, $action);
-        $this->assertEquals(ReturnTheParametersAsOutputAction::class, $action->getActionClass());
+        $this->assertInstanceOf(QueuedAction::class, $action);
+        $this->assertEquals(ReturnTheParametersAsOutputAction::class, $action->getClass());
         $this->assertEquals("return the parameters as output", $action->getName());
         $this->assertEquals(ActionStatus::SUCCEEDED, $action->getStatus());
         $this->assertEquals([$parameterA, $parameterB], $action->getOutput());
 
         $action = $actionChain->getNthAction(2);
-        $this->assertInstanceOf(Action::class, $action);
-        $this->assertEquals(SkipAction::class, $action->getActionClass());
+        $this->assertInstanceOf(QueuedAction::class, $action);
+        $this->assertEquals(SkipAction::class, $action->getClass());
         $this->assertEquals("skip", $action->getName());
         $this->assertEquals(ActionStatus::SUCCEEDED, $action->getStatus());
         $this->assertEquals("not skipped at all", $action->getOutput());
 
         $action = $actionChain->getNthAction(3);
-        $this->assertInstanceOf(Action::class, $action);
-        $this->assertEquals(ThrowAnExceptionAction::class, $action->getActionClass());
+        $this->assertInstanceOf(QueuedAction::class, $action);
+        $this->assertEquals(ThrowAnExceptionAction::class, $action->getClass());
         $this->assertEquals("throw an exception", $action->getName());
         $this->assertEquals(ActionStatus::FAILED, $action->getStatus());
         $this->assertEquals("Let's break all the things!", $action->getOutput());
 
         $action = $actionChain->getNthAction(4);
-        $this->assertInstanceOf(Action::class, $action);
-        $this->assertEquals(SkipAction::class, $action->getActionClass());
+        $this->assertInstanceOf(QueuedAction::class, $action);
+        $this->assertEquals(SkipAction::class, $action->getClass());
         $this->assertEquals("skip", $action->getName());
         $this->assertEquals(ActionStatus::SKIPPED, $action->getStatus());
         $this->assertEquals(null, $action->getOutput());
 
         $action = $actionChain->getNthAction(5);
-        $this->assertInstanceOf(Action::class, $action);
-        $this->assertEquals(ReturnTheParametersAsOutputAction::class, $action->getActionClass());
+        $this->assertInstanceOf(QueuedAction::class, $action);
+        $this->assertEquals(ReturnTheParametersAsOutputAction::class, $action->getClass());
         $this->assertEquals("return the parameters as output", $action->getName());
         $this->assertEquals(ActionStatus::SUCCEEDED, $action->getStatus());
         $this->assertEquals([$parameterA, $parameterB], $action->getOutput());
@@ -154,23 +148,11 @@ class QueueableActionTest extends TestCase
 
         (new ReturnTheParametersAsOutputAction)
             ->queue()
-            ->chain([
-                SkipAction::class,
-                ThrowAnExceptionAction::class,
-                SkipAction::class,
-                ReturnTheParametersAsOutputAction::class,
-            ])
-            ->withCallback(function(ActionCallback $callback) {
-                if(! $callback->hasAction()) {
-                    return;
-                }
-
-                file_put_contents(
-                    TestCase::LOG_PATH,
-                    "{$callback->getAction()->getActionClass()} - {$callback->getAction()->getStatus()}",
-                    FILE_APPEND
-                );
-            })
+            ->chain(SkipAction::class)
+            ->chain(ThrowAnExceptionAction::class)
+            ->chain(SkipAction::class)
+            ->chain(ReturnTheParametersAsOutputAction::class, compact('parameterA', 'parameterB'))
+            ->withCallback(LogCallback::class)
             ->execute($parameterA, $parameterB);
 
         $actionClass = ReturnTheParametersAsOutputAction::class;
@@ -205,17 +187,7 @@ class QueueableActionTest extends TestCase
         (new ReturnTheParametersAsOutputAction)
             ->queue()
             ->onModel($testModel)
-            ->withCallback(function(ActionCallback $callback) {
-                if(! $callback->hasAction()) {
-                    return;
-                }
-
-                file_put_contents(
-                    TestCase::LOG_PATH,
-                    "{$callback->getAction()->getActionClass()} - {$callback->getAction()->getStatus()}",
-                    FILE_APPEND
-                );
-            })
+            ->withCallback(LogCallback::class)
             ->execute($parameterA, $parameterB);
 
         $actionClass = ReturnTheParametersAsOutputAction::class;

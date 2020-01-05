@@ -2,60 +2,31 @@
 
 namespace MichielKempen\LaravelActions;
 
-use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
-class Action implements Arrayable
+class Action implements ActionContract
 {
-    private string $actionClass;
-    private array $parameters;
+    private string $class;
+    private array $arguments;
     private string $name;
     private string $status;
-    private ?string $output;
+    private $output;
     private ?Carbon $startedAt;
     private ?Carbon $finishedAt;
 
-    public function __construct(
-        string $actionClass, array $parameters, string $name, string $status, $output = null, ?Carbon $startedAt = null,
-        ?Carbon $finishedAt = null
-    )
+    public function __construct(object $action, array $arguments = [])
     {
-        $this->actionClass = $actionClass;
-        $this->parameters = $parameters;
-        $this->name = $name;
-        $this->status = $status;
-        $this->output = $output;
-        $this->startedAt = $startedAt;
-        $this->finishedAt = $finishedAt;
+        $this->class = get_class($action);
+        $this->arguments = $arguments;
+        $this->name = $this->parseName($action);
+        $this->status = ActionStatus::PENDING;
+        $this->output = null;
+        $this->startedAt = null;
+        $this->finishedAt = null;
     }
 
-    public static function createFromSerialization(array $serialization): Action
-    {
-        $startedAt = $serialization['started_at'];
-        $finishedAt = $serialization['finished_at'];
-
-        return new static(
-            $serialization['action_class'],
-            $serialization['parameters'],
-            $serialization['name'],
-            $serialization['status'],
-            $serialization['output'],
-            is_null($startedAt) ? null : Carbon::parse($startedAt),
-            is_null($finishedAt) ? null : Carbon::parse($finishedAt)
-        );
-    }
-
-    public static function createFromAction(object $action, array $parameters = []): Action
-    {
-        $actionClass = get_class($action);
-        $name = self::parseName($action);
-        $status = ActionStatus::PENDING;
-
-        return new static($actionClass, $parameters, $name, $status);
-    }
-
-    public static function parseName(object $action): string
+    private function parseName(object $action): string
     {
         if(property_exists($action, 'name')) {
             return  $action->name;
@@ -68,19 +39,19 @@ class Action implements Arrayable
         return $name;
     }
 
-    public function getActionClass(): string
+    public function getClass(): string
     {
-        return $this->actionClass;
+        return $this->class;
     }
 
-    public function instantiateAction(): object
+    public function instantiate(): object
     {
-        return app($this->actionClass);
+        return app($this->class);
     }
 
-    public function getParameters(): array
+    public function getArguments(): array
     {
-        return $this->parameters;
+        return $this->arguments;
     }
 
     public function getName(): string
@@ -88,7 +59,7 @@ class Action implements Arrayable
         return $this->name;
     }
 
-    public function setStatus(string $status): Action
+    public function setStatus(string $status): ActionContract
     {
         $this->status = $status;
 
@@ -100,7 +71,7 @@ class Action implements Arrayable
         return $this->status;
     }
 
-    public function setOutput($output): Action
+    public function setOutput($output): ActionContract
     {
         $this->output = $output;
 
@@ -112,7 +83,7 @@ class Action implements Arrayable
         return $this->output;
     }
 
-    public function setStartedAt(?Carbon $startedAt): Action
+    public function setStartedAt(?Carbon $startedAt): ActionContract
     {
         $this->startedAt = $startedAt;
 
@@ -124,7 +95,7 @@ class Action implements Arrayable
         return $this->startedAt;
     }
 
-    public function setFinishedAt(?Carbon $finishedAt): Action
+    public function setFinishedAt(?Carbon $finishedAt): ActionContract
     {
         $this->finishedAt = $finishedAt;
 
@@ -143,19 +114,5 @@ class Action implements Arrayable
         }
 
         return $this->finishedAt->longAbsoluteDiffForHumans($this->startedAt);
-    }
-
-    public function toArray(): array
-    {
-        return [
-            'action_class' => $this->actionClass,
-            'parameters' => $this->parameters,
-            'name' => $this->name,
-            'status' => $this->status,
-            'output' => $this->output,
-            'started_at' => is_null($this->startedAt) ? null : $this->startedAt->toIso8601String(),
-            'finished_at' => is_null($this->finishedAt) ? null : $this->finishedAt->toIso8601String(),
-            'duration' => $this->getDuration(),
-        ];
     }
 }

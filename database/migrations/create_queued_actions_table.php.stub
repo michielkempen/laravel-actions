@@ -17,6 +17,7 @@ class CreateQueuedActionsTable extends Migration
             // fields
             $table->uuid('id');
             $table->string('name');
+            $table->text('callbacks')->nullable();
             // tracking
             $table->string('model_type')->nullable();
             $table->uuid('model_id')->nullable();
@@ -33,10 +34,13 @@ class CreateQueuedActionsTable extends Migration
             $table->uuid('chain_id')->nullable();
             $table->integer('order');
             // action
+            $table->string('class');
+            $table->string('arguments');
+            $table->string('name');
             $table->string('status', 16);
-            $table->text('action');
-            // callback
-            $table->text('callbacks')->nullable();
+            $table->text('output')->nullable();
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('finished_at')->nullable();
             // indices
             $table->primary('id');
             $table->index(['chain_id', 'status']);

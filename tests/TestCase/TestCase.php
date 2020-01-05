@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factory;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\WithFaker;
+use MichielKempen\LaravelActions\Tests\QueueableActionsServiceProviderTest;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
 class TestCase extends OrchestraTestCase
@@ -17,6 +18,8 @@ class TestCase extends OrchestraTestCase
     public function setUp(): void
     {
         parent::setUp();
+
+        config()->set('actions.default_attempts', 1);
 
         $this->setUpDatabase($this->app);
         $this->clearLog();

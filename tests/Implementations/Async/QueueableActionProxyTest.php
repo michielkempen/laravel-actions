@@ -2,11 +2,13 @@
 
 namespace MichielKempen\LaravelActions\Tests\Implementations\Async;
 
+use Illuminate\Support\Collection;
 use MichielKempen\LaravelActions\Action;
 use MichielKempen\LaravelActions\Implementations\Async\QueueableActionProxy;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\ReturnTheParametersAsOutputAction;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\SkipAction;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\ThrowAnExceptionAction;
+use MichielKempen\LaravelActions\Tests\TestCase\Callbacks\ReturnStatusCallback;
 use MichielKempen\LaravelActions\Tests\TestCase\TestCase;
 use MichielKempen\LaravelActions\Tests\TestCase\TestModel;
 
@@ -19,11 +21,13 @@ class QueueableActionProxyTest extends TestCase
 
         $proxy = new QueueableActionProxy($action);
 
-        $this->assertEquals($action, $proxy->getAction());
+        $this->assertEquals($action, $proxy->getActionInstance());
         $this->assertNull($proxy->getModelType());
         $this->assertNull($proxy->getModelId());
-        $this->assertEquals([], $proxy->getCallbacks());
-        $this->assertEquals([], $proxy->getChainedActions());
+        $this->assertInstanceOf(Collection::class, $proxy->getCallbacks());
+        $this->assertEquals(0, $proxy->getCallbacks()->count());
+        $this->assertInstanceOf(Collection::class, $proxy->getChainedActions());
+        $this->assertEquals(0, $proxy->getChainedActions()->count());
     }
 
     /** @test */
@@ -31,32 +35,19 @@ class QueueableActionProxyTest extends TestCase
     {
         $actionA = new ReturnTheParametersAsOutputAction;
         $testModel = TestModel::create();
-        $callbackA = function(Action $action) {
-            return $action->getStatus();
-        };
-        $callbackB = function(Action $action) {
-            return $action->getName();
-        };
 
         $proxy = (new QueueableActionProxy($actionA))
             ->onModel($testModel)
-            ->withCallback($callbackA)
-            ->withCallback($callbackB)
-            ->chain([
-                SkipAction::class,
-            ])
-            ->chain([
-                ThrowAnExceptionAction::class,
-            ]);
+            ->chain(SkipAction::class)
+            ->chain(ThrowAnExceptionAction::class)
+            ->withCallback(ReturnStatusCallback::class);
 
-        $this->assertEquals($actionA, $proxy->getAction());
+        $this->assertEquals($actionA, $proxy->getActionInstance());
         $this->assertEquals('TestModel', $proxy->getModelType());
         $this->assertEquals($testModel->id, $proxy->getModelId());
-        $this->assertEquals([SkipAction::class, ThrowAnExceptionAction::class], $proxy->getChainedActions());
+        $this->assertEquals(SkipAction::class, $proxy->getChainedActions()->get(0)->getClass());
+        $this->assertEquals(ThrowAnExceptionAction::class, $proxy->getChainedActions()->get(1)->getClass());
         $callbacks = $proxy->getCallbacks();
-        $this->assertEquals(2, count($callbacks));
-        $action = Action::createFromAction($actionA, ['hello', 'world']);
-        $this->assertEquals($callbackA($action), $callbacks[0]($action));
-        $this->assertEquals($callbackB($action), $callbacks[1]($action));
+        $this->assertEquals(1, $callbacks->count());
     }
 }

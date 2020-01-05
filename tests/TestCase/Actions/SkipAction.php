@@ -2,7 +2,7 @@
 
 namespace MichielKempen\LaravelActions\Tests\TestCase\Actions;
 
-use MichielKempen\LaravelActions\ActionChain;
+use MichielKempen\LaravelActions\ActionChainContract;
 use MichielKempen\LaravelActions\Implementations\Async\QueueableAction;
 use MichielKempen\LaravelActions\Implementations\Sync\ChainableAction;
 
@@ -11,10 +11,10 @@ class SkipAction
     use QueueableAction, ChainableAction;
 
     /**
-     * @param ActionChain $actionChain
+     * @param ActionChainContract $actionChain
      * @return bool
      */
-    public function skip(ActionChain $actionChain) : bool
+    public function skip(ActionChainContract $actionChain) : bool
     {
         return $actionChain->hasUnsuccessfulActionForAnyActionClassOf([
             ThrowAnExceptionAction::class,

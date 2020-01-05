@@ -2,12 +2,9 @@
 
 namespace MichielKempen\LaravelActions;
 
-use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection;
-use MichielKempen\LaravelActions\Database\QueuedAction;
-use MichielKempen\LaravelActions\Database\QueuedActionChain;
 
-class ActionChain implements Arrayable
+class ActionChain implements ActionChainContract
 {
     private Collection $actions;
 
@@ -16,29 +13,7 @@ class ActionChain implements Arrayable
         $this->actions = new Collection;
     }
 
-    public static function createFromSerialization(array $serialization): ActionChain
-    {
-        $actionChain = new static;
-
-        foreach ($serialization['actions'] as $action) {
-            $actionChain->addAction(Action::createFromSerialization($action));
-        }
-
-        return $actionChain;
-    }
-
-    public static function createFromQueuedActionChain(QueuedActionChain $queuedActionChain): ActionChain
-    {
-        $actionChain = new static;
-
-        $queuedActionChain->getActions()->each(function(QueuedAction $queuedAction) use ($actionChain) {
-            $actionChain->addAction($queuedAction->getAction());
-        });
-
-        return $actionChain;
-    }
-
-    public function addAction(Action $action): ActionChain
+    public function addAction(ActionContract $action): ActionChain
     {
         $this->actions->add($action);
 
@@ -67,9 +42,7 @@ class ActionChain implements Arrayable
 
     public function getActionsForActionClass(string $actionClass): Collection
     {
-        return $this->actions->filter(function(Action $action) use ($actionClass) {
-            return $action->getActionClass() == $actionClass;
-        });
+        return $this->actions->filter(fn(ActionContract $action) => $action->getClass() == $actionClass);
     }
 
     public function getNthActionForActionClass(int $number, string $actionClass): ?Action
@@ -79,32 +52,25 @@ class ActionChain implements Arrayable
 
     public function hasUnsuccessfulActionForAnyActionClassOf(array $actionClasses): bool
     {
-        return $this->actions->filter(function(Action $action) use ($actionClasses) {
-            return in_array($action->getActionClass(), $actionClasses)
-                && in_array($action->getStatus(), [ActionStatus::FAILED, ActionStatus::SKIPPED]);
-        })->isNotEmpty();
+        return $this->actions
+            ->filter(function(ActionContract $action) use ($actionClasses) {
+                return in_array($action->getClass(), $actionClasses)
+                    && in_array($action->getStatus(), [ActionStatus::FAILED, ActionStatus::SKIPPED]);
+            })
+            ->isNotEmpty();
     }
 
     public function isSuccessful(): bool
     {
-        return $this->actions->filter(function(Action $action) {
-            return $action->getStatus() != ActionStatus::SUCCEEDED;
-        })->isEmpty();
+        return $this->actions
+            ->filter(fn(ActionContract $action) => $action->getStatus() != ActionStatus::SUCCEEDED)
+            ->isEmpty();
     }
 
     public function isFinished(): bool
     {
-        return $this->actions->filter(function(Action $action) {
-            return $action->getStatus() == ActionStatus::PENDING;
-        })->isEmpty();
-    }
-
-    public function toArray(): array
-    {
-        return [
-            'success' => $this->isSuccessful(),
-            'finished' => $this->isFinished(),
-            'actions' => $this->getActions()->toArray(),
-        ];
+        return $this->actions
+            ->filter(fn(ActionContract $action) => $action->getStatus() == ActionStatus::PENDING)
+            ->isEmpty();
     }
 }

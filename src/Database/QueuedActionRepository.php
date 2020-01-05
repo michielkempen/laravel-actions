@@ -18,26 +18,18 @@ class QueuedActionRepository
         return $this->model->findOrFail($queuedActionId);
     }
 
-    public function createQueuedAction(string $chainId, int $order, Action $action, array $callbacks): QueuedAction
+    public function createQueuedAction(string $chainId, int $order, Action $action): QueuedAction
     {
         return $this->model->create([
             'chain_id' => $chainId,
             'order' => $order,
+            'class' => $action->getClass(),
+            'arguments' => $action->getArguments(),
+            'name' => $action->getName(),
             'status' => $action->getStatus(),
-            'action' => $action->toArray(),
-            'callbacks' => $callbacks,
+            'output' => $action->getOutput(),
+            'started_at' => $action->getStartedAt(),
+            'finished_at' => $action->getFinishedAt(),
         ]);
-    }
-
-    public function updateQueuedAction(string $queuedActionId, Action $action): QueuedAction
-    {
-        $queuedAction = $this->getQueuedActionOrFail($queuedActionId);
-
-        $queuedAction->update([
-            'status' => $action->getStatus(),
-            'action' => $action->toArray(),
-        ]);
-
-        return $queuedAction;
     }
 }

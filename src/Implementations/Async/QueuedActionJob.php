@@ -6,99 +6,71 @@ use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use MichielKempen\LaravelActions\Action;
-use MichielKempen\LaravelActions\ActionCallback;
-use MichielKempen\LaravelActions\ActionChain;
+use MichielKempen\LaravelActions\ActionChainReport;
 use MichielKempen\LaravelActions\ActionStatus;
+use MichielKempen\LaravelActions\ActionChainCallback;
 use MichielKempen\LaravelActions\Database\QueuedAction;
 use MichielKempen\LaravelActions\Database\QueuedActionRepository;
-use MichielKempen\LaravelActions\TriggerCallbacks;
 use Throwable;
 
 class QueuedActionJob implements ShouldQueue
 {
     use Dispatchable, Queueable;
 
-    /**
-     * @var QueuedActionRepository
-     */
-    private $queuedActionRepository;
+    private QueuedActionRepository $queuedActionRepository;
+    private string $queuedActionId;
+    private ?QueuedAction $queuedAction = null;
 
-    /**
-     * @var string
-     */
-    private $queuedActionId;
-
-    /**
-     * @var null|QueuedAction
-     */
-    private $queuedAction;
-
-    /**
-     * @param object $action
-     * @param string $queuedActionId
-     */
-    public function __construct(object $action, string $queuedActionId)
+    public function __construct(object $actionInstance, string $queuedActionId)
     {
         $this->queuedActionRepository = app(QueuedActionRepository::class);
         $this->queuedActionId = $queuedActionId;
-        $this->resolveQueueableProperties($action);
+        $this->resolveQueueableProperties($actionInstance);
     }
 
-    /**
-     * @param object $action
-     */
-    private function resolveQueueableProperties(object $action): void
+    private function resolveQueueableProperties(object $actionInstance): void
     {
         // Tries: Since we implement our own retry logic, we do not want Laravel to retry our failed jobs.
         $this->tries = 1;
 
         // Queue
-        $this->queue = $action->queue ?? config('actions.default_queue');
+        $this->queue = $actionInstance->queue ?? config('actions.default_queue');
 
         // Timeout
-        $this->timeout = $action->timeout ?? config('actions.default_timeout');
+        $this->timeout = $actionInstance->timeout ?? config('actions.default_timeout');
 
         // Connection
-        if(property_exists($action, 'connection')) {
-            $this->connection = $action->connection;
+        if(property_exists($actionInstance, 'connection')) {
+            $this->connection = $actionInstance->connection;
         }
 
         // Delay
-        if(property_exists($action, 'delay')) {
-            $this->delay = $action->delay;
+        if(property_exists($actionInstance, 'delay')) {
+            $this->delay = $actionInstance->delay;
         }
     }
 
-    /**
-     * ...
-     */
-    public function handle()
+    public function handle(): void
     {
         $this->queuedAction = $this->queuedActionRepository->getQueuedActionOrFail($this->queuedActionId);
 
-        $action = $this->queuedAction->getAction();
+        $this->queuedAction->setStartedAt(now()->subSeconds($this->delay ?? 0));
+        $this->queuedAction->save();
 
-        $action->setStartedAt(now()->subSeconds($this->delay ?? 0));
+        $this->executeAction();
 
-        $this->executeAction($action);
-
-        $action->setFinishedAt(now());
-
-        $this->queuedAction = $this->queuedActionRepository->updateQueuedAction($this->queuedAction->getId(), $action);
+        $this->queuedAction->setFinishedAt(now());
+        $this->queuedAction->save();
 
         $this->triggerCallbacks();
     }
 
-    /**
-     * @param Action $action
-     */
-    private function executeAction(Action $action): void
+    private function executeAction(): void
     {
-        $actionInstance = $action->instantiateAction();
+        $actionInstance = $this->queuedAction->instantiate();
 
         if($this->shouldSkipAction($actionInstance)) {
-            $action->setStatus(ActionStatus::SKIPPED);
+            $this->queuedAction->setStatus(ActionStatus::SKIPPED);
             return;
         }
 
@@ -109,9 +81,9 @@ class QueuedActionJob implements ShouldQueue
         for($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
             try {
                 // execute the action
-                $output = $actionInstance->execute(...$action->getParameters());
+                $output = $actionInstance->execute(...array_values($this->queuedAction->getArguments()));
                 // if the action succeeds, mark the action as successful
-                $action->setStatus(ActionStatus::SUCCEEDED)->setOutput($output);
+                $this->queuedAction->setStatus(ActionStatus::SUCCEEDED)->setOutput($output);
                 //and stop the execution
                 return;
             } catch (Throwable $exception) {
@@ -120,81 +92,62 @@ class QueuedActionJob implements ShouldQueue
                     continue;
                 }
                 // if there are no attempts left, mark the action as failed
-                $action->setStatus(ActionStatus::FAILED)->setOutput($exception->getMessage());
+                $this->queuedAction->setStatus(ActionStatus::FAILED)->setOutput($exception->getMessage());
                 // and stop the execution
                 return;
             }
         }
     }
 
-    /**
-     * @param object $actionInstance
-     * @return bool
-     */
     private function shouldSkipAction(object $actionInstance): bool
     {
         if(! method_exists($actionInstance, 'skip')) {
             return false;
         }
 
-        $actionChain = ActionChain::createFromQueuedActionChain($this->queuedAction->getChain());
-
-        return $actionInstance->skip($actionChain);
+        return $actionInstance->skip($this->queuedAction->getChain());
     }
 
-    /**
-     * @param Exception $exception
-     */
-    public function failed(Exception $exception)
+    public function failed(Exception $exception): void
     {
         $this->queuedAction = $this->queuedActionRepository->getQueuedActionOrFail($this->queuedActionId);
 
-        $action = $this->queuedAction
-            ->getAction()
+        $this->queuedAction
             ->setFinishedAt(now())
             ->setStatus(ActionStatus::FAILED)
             ->setOutput($exception->getMessage());
 
-        $this->queuedAction = $this->queuedActionRepository->updateQueuedAction($this->queuedActionId, $action);
+        $this->queuedAction->save();
 
         $this->triggerCallbacks();
 
-        $actionInstance = $action->instantiateAction();
+        $actionInstance = $this->queuedAction->instantiate();
 
         if(method_exists($actionInstance, 'failed')) {
             $actionInstance->failed($exception);
         }
     }
 
-    /**
-     * ...
-     */
     private function triggerCallbacks(): void
     {
-        $action = $this->queuedAction->getAction();
         $queuedActionChain = $this->queuedAction->getChain();
-        $actionChain = ActionChain::createFromQueuedActionChain($queuedActionChain);
 
-        $actionCallback = new ActionCallback($action, $actionChain, $queuedActionChain);
+        $actionChainReport = new ActionChainReport($this->queuedAction, $queuedActionChain);
 
-        TriggerCallbacks::execute($this->queuedAction->getCallbacks(), $actionCallback);
+        $queuedActionChain
+            ->getCallbacks()
+            ->each(fn(ActionChainCallback $callback) => $callback->trigger($actionChainReport));
     }
 
-    /**
-     * @return string
-     */
     public function displayName(): string
     {
         if(is_null($this->queuedAction)) {
             $this->queuedAction = $this->queuedActionRepository->getQueuedActionOrFail($this->queuedActionId);
         }
 
-        return $this->queuedAction->getAction()->getActionClass();
+        return $this->queuedAction->getClass();
     }
 
-    /**
-     * @return string
-     */
     public function getQueuedActionId(): string
     {
         return $this->queuedActionId;

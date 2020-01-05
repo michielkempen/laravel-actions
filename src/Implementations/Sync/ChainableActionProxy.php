@@ -4,65 +4,44 @@ namespace MichielKempen\LaravelActions\Implementations\Sync;
 
 use Exception as PhpException;
 use MichielKempen\LaravelActions\Action;
-use MichielKempen\LaravelActions\ActionCallback;
+use MichielKempen\LaravelActions\ActionChainReport;
 use MichielKempen\LaravelActions\ActionChain;
 use MichielKempen\LaravelActions\ActionProxy;
 use MichielKempen\LaravelActions\ActionStatus;
-use MichielKempen\LaravelActions\TriggerCallbacks;
+use MichielKempen\LaravelActions\ActionChainCallback;
 
 class ChainableActionProxy extends ActionProxy
 {
-    /**
-     * @param mixed ...$parameters
-     * @return ActionChain
-     */
-    public function execute(...$parameters)
+    public function execute(...$arguments): ActionChain
     {
-        $actionChain = $this->createActionChain($parameters);
+        $actionChain = $this->createActionChain($arguments);
 
         $this->triggerCallbacks(null, $actionChain);
 
         $actionChain->getActions()->each(function(Action $action) use ($actionChain) {
-
             $action->setStartedAt(now());
-
-            $this->executeAction($actionChain, $action);
-
+            $this->executeAction($action, $actionChain);
             $action->setFinishedAt(now());
-
             $this->triggerCallbacks($action, $actionChain);
-
         });
 
         return $actionChain;
     }
 
-    /**
-     * @param array $parameters
-     * @return ActionChain
-     */
-    private function createActionChain(array $parameters): ActionChain
+    private function createActionChain(array $arguments): ActionChain
     {
         $actionChain = new ActionChain;
 
-        $action = Action::createFromAction($this->action, $parameters);
-        $actionChain->addAction($action);
+        $actionChain->addAction(new Action($this->actionInstance, $arguments));
 
-        foreach ($this->chainedActions as $actionClass) {
-            $action = Action::createFromAction(app($actionClass), $parameters);
-            $actionChain->addAction($action);
-        }
+        $this->chainedActions->each(fn(Action $action) => $actionChain->addAction($action));
 
         return $actionChain;
     }
 
-    /**
-     * @param ActionChain $actionChain
-     * @param Action $action
-     */
-    private function executeAction(ActionChain $actionChain, Action $action): void
+    private function executeAction(Action $action, ActionChain $actionChain): void
     {
-        $actionInstance = $action->instantiateAction();
+        $actionInstance = $action->instantiate();
 
         if($this->shouldSkipAction($actionChain, $actionInstance)) {
             $action->setStatus(ActionStatus::SKIPPED);
@@ -76,7 +55,7 @@ class ChainableActionProxy extends ActionProxy
         for($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
             try {
                 // execute the action
-                $output = $actionInstance->execute(...$action->getParameters());
+                $output = $actionInstance->execute(...array_values($action->getArguments()));
                 // if the action succeeds, mark the action as successful
                 $action->setStatus(ActionStatus::SUCCEEDED)->setOutput($output);
                 //and stop the execution
@@ -94,28 +73,19 @@ class ChainableActionProxy extends ActionProxy
         }
     }
 
-    /**
-     * @param ActionChain $report
-     * @param $actionInstance
-     * @return bool
-     */
-    private function shouldSkipAction(ActionChain $report, object $actionInstance): bool
+    private function shouldSkipAction(ActionChain $actionChain, object $actionInstance): bool
     {
         if(! method_exists($actionInstance, 'skip')) {
             return false;
         }
 
-        return $actionInstance->skip($report);
+        return $actionInstance->skip($actionChain);
     }
 
-    /**
-     * @param ActionChain $actionChain
-     * @param Action|null $action
-     */
     private function triggerCallbacks(?Action $action, ActionChain $actionChain): void
     {
-        $actionCallback = new ActionCallback($action, $actionChain, null);
+        $actionChainReport = new ActionChainReport($action, $actionChain);
 
-        TriggerCallbacks::execute($this->callbacks, $actionCallback);
+        $this->callbacks->each(fn(ActionChainCallback $callback) => $callback->trigger($actionChainReport));
     }
 }

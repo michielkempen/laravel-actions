@@ -46,13 +46,13 @@ class QueuedActionTest extends TestCase
         $this->assertEquals($queuedActionChain->getId(), $chain->getId());
         $this->assertEquals(2, $queuedActionB->getOrder());
         $this->assertEquals(ActionStatus::PENDING, $queuedActionB->getStatus());
-        $this->assertEquals(count($callbacks), count($queuedActionB->getCallbacks()));
-        $this->assertEquals($callbacks[0]($action), $queuedActionB->getCallbacks()[0]($action));
+        $this->assertEquals(count($callbacks), $queuedActionB->getCallbacks()->count());
+        $this->assertEquals($callbacks[0]($action), $queuedActionB->getCallbacks()->first()($action));
         $this->assertEquals('pending', $callbacks[0]($action));
         $action = $queuedActionB->getAction();
         $this->assertInstanceOf(Action::class, $action);
-        $this->assertEquals(ReturnTheParametersAsOutputAction::class, $action->getActionClass());
-        $this->assertEquals([5, 'parameter'], $action->getParameters());
+        $this->assertEquals(ReturnTheParametersAsOutputAction::class, $action->getClass());
+        $this->assertEquals([5, 'parameter'], $action->getArguments());
         $this->assertEquals('send email', $action->getName());
         $this->assertEquals(ActionStatus::PENDING, $action->getStatus());
         $this->assertEquals('output', $action->getOutput());

@@ -4,15 +4,10 @@ namespace MichielKempen\LaravelActions\Implementations\Async;
 
 trait QueueableAction
 {
-    /**
-     * @return QueueableActionProxy
-     */
-    public function queue()
+    public function queue(): QueueableActionProxy
     {
-        $class = app()->makeWith(QueueableActionProxy::class, [
-            'action' => $this,
+        return resolve(QueueableActionProxy::class, [
+            'actionInstance' => $this,
         ]);
-
-        return $class;
     }
 }
