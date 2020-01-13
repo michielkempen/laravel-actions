@@ -11,6 +11,7 @@ use MichielKempen\LaravelActions\ActionStatus;
 use MichielKempen\LaravelActions\ActionChainCallback;
 use MichielKempen\LaravelActions\Database\QueuedAction;
 use MichielKempen\LaravelActions\Database\QueuedActionRepository;
+use MichielKempen\LaravelActions\InteractsWithActionChain;
 use Throwable;
 
 class QueuedActionJob implements ShouldQueue
@@ -69,6 +70,10 @@ class QueuedActionJob implements ShouldQueue
     {
         $actionInstance = $this->queuedAction->instantiate();
 
+        if($this->actionInteractsWithActionChain($actionInstance)) {
+            $actionInstance->setActionChain($this->queuedAction->getChain());
+        }
+
         if($this->shouldSkipAction($actionInstance)) {
             $this->queuedAction->setStatus(ActionStatus::SKIPPED);
             return;
@@ -99,13 +104,18 @@ class QueuedActionJob implements ShouldQueue
         }
     }
 
+    private function actionInteractsWithActionChain(object $actionInstance): bool
+    {
+        return in_array(InteractsWithActionChain::class, class_uses($actionInstance));
+    }
+
     private function shouldSkipAction(object $actionInstance): bool
     {
         if(! method_exists($actionInstance, 'skip')) {
             return false;
         }
 
-        return $actionInstance->skip($this->queuedAction->getChain());
+        return $actionInstance->skip();
     }
 
     public function failed(Exception $exception): void

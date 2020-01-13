@@ -9,6 +9,7 @@ use MichielKempen\LaravelActions\ActionChain;
 use MichielKempen\LaravelActions\ActionProxy;
 use MichielKempen\LaravelActions\ActionStatus;
 use MichielKempen\LaravelActions\ActionChainCallback;
+use MichielKempen\LaravelActions\InteractsWithActionChain;
 
 class ChainableActionProxy extends ActionProxy
 {
@@ -43,7 +44,11 @@ class ChainableActionProxy extends ActionProxy
     {
         $actionInstance = $action->instantiate();
 
-        if($this->shouldSkipAction($actionChain, $actionInstance)) {
+        if($this->actionInteractsWithActionChain($actionInstance)) {
+            $actionInstance->setActionChain($actionChain);
+        }
+
+        if($this->shouldSkipAction($actionInstance)) {
             $action->setStatus(ActionStatus::SKIPPED);
             return;
         }
@@ -73,13 +78,18 @@ class ChainableActionProxy extends ActionProxy
         }
     }
 
-    private function shouldSkipAction(ActionChain $actionChain, object $actionInstance): bool
+    private function actionInteractsWithActionChain(object $actionInstance): bool
+    {
+        return in_array(InteractsWithActionChain::class, class_uses($actionInstance));
+    }
+
+    private function shouldSkipAction(object $actionInstance): bool
     {
         if(! method_exists($actionInstance, 'skip')) {
             return false;
         }
 
-        return $actionInstance->skip($actionChain);
+        return $actionInstance->skip();
     }
 
     private function triggerCallbacks(?Action $action, ActionChain $actionChain): void
