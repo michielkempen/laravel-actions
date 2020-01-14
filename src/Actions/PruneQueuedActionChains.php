@@ -2,8 +2,8 @@
 
 namespace MichielKempen\LaravelActions\Actions;
 
-use MichielKempen\LaravelActions\Database\QueuedActionChainRepository;
-use MichielKempen\LaravelActions\Implementations\Async\QueueableAction;
+use MichielKempen\LaravelActions\QueueableAction;
+use MichielKempen\LaravelActions\Resources\ActionChain\QueuedActionChainRepository;
 
 class PruneQueuedActionChains
 {

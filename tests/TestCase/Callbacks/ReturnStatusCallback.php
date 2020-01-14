@@ -2,7 +2,7 @@
 
 namespace MichielKempen\LaravelActions\Tests\TestCase\Callbacks;
 
-use MichielKempen\LaravelActions\ActionChainReport;
+use MichielKempen\LaravelActions\Resources\ActionChainReport;
 
 class ReturnStatusCallback
 {

@@ -1,8 +1,6 @@
 <?php
 
-namespace MichielKempen\LaravelActions\Database;
-
-use MichielKempen\LaravelActions\Action;
+namespace MichielKempen\LaravelActions\Resources\Action;
 
 class QueuedActionRepository
 {
@@ -21,6 +19,7 @@ class QueuedActionRepository
     public function createQueuedAction(string $chainId, int $order, Action $action): QueuedAction
     {
         return $this->model->create([
+            'id' => $action->getId(),
             'chain_id' => $chainId,
             'order' => $order,
             'class' => $action->getClass(),

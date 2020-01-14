@@ -1,21 +1,54 @@
 <?php
 
-namespace MichielKempen\LaravelActions\Implementations\Sync;
+namespace MichielKempen\LaravelActions;
 
-use Exception as PhpException;
-use MichielKempen\LaravelActions\Action;
-use MichielKempen\LaravelActions\ActionChainReport;
-use MichielKempen\LaravelActions\ActionChain;
-use MichielKempen\LaravelActions\ActionProxy;
-use MichielKempen\LaravelActions\ActionStatus;
-use MichielKempen\LaravelActions\ActionChainCallback;
-use MichielKempen\LaravelActions\InteractsWithActionChain;
+use Exception;
+use Illuminate\Support\Collection;
+use MichielKempen\LaravelActions\Resources\Action\Action;
+use MichielKempen\LaravelActions\Resources\ActionChain\ActionChain;
+use MichielKempen\LaravelActions\Resources\ActionChainCallback;
+use MichielKempen\LaravelActions\Resources\ActionChainReport;
+use MichielKempen\LaravelActions\Resources\ActionOutput;
+use MichielKempen\LaravelActions\Resources\ActionStatus;
+use MichielKempen\LaravelActions\Resources\QueueableActionChainProxy;
 
-class ChainableActionProxy extends ActionProxy
+class QueueableActionChain
 {
-    public function execute(...$arguments): ActionChain
+    private Collection $actions;
+    private Collection $callbacks;
+
+    public function __construct(Collection $actions = null)
     {
-        $actionChain = $this->createActionChain($arguments);
+        $this->actions = $actions ?? new Collection;
+        $this->callbacks = new Collection;
+    }
+
+    public function queue(): QueueableActionChainProxy
+    {
+        return new QueueableActionChainProxy($this->actions, $this->callbacks);
+    }
+
+    public function addAction(
+        string $class, array $arguments = [], ?string $name = null, ?string $id = null
+    ): QueueableActionChain
+    {
+        $this->actions->add(new Action(resolve($class), $arguments, $name, $id));
+        return $this;
+    }
+
+    public function withCallback(string $class, array $arguments = []): QueueableActionChain
+    {
+        $this->callbacks->add(new ActionChainCallback($class, $arguments));
+        return $this;
+    }
+
+    public function execute()
+    {
+        if($this->actions->isEmpty()) {
+            throw new Exception("Cannot execute empty action chain.", 500);
+        }
+
+        $actionChain = $this->createActionChain();
 
         $this->triggerCallbacks(null, $actionChain);
 
@@ -29,13 +62,11 @@ class ChainableActionProxy extends ActionProxy
         return $actionChain;
     }
 
-    private function createActionChain(array $arguments): ActionChain
+    private function createActionChain(): ActionChain
     {
         $actionChain = new ActionChain;
 
-        $actionChain->addAction(new Action($this->actionInstance, $arguments));
-
-        $this->chainedActions->each(fn(Action $action) => $actionChain->addAction($action));
+        $this->actions->each(fn(Action $action) => $actionChain->addAction($action));
 
         return $actionChain;
     }
@@ -53,6 +84,8 @@ class ChainableActionProxy extends ActionProxy
             return;
         }
 
+        $arguments = $this->resolveArguments($action, $actionChain);
+
         // get the maximum number of attempts specified by the user in the action class
         // if no number is specified, default to the number specified in the config file
         $maxAttempts = $actionInstance->attempts ?? config('actions.default_attempts');
@@ -60,12 +93,12 @@ class ChainableActionProxy extends ActionProxy
         for($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
             try {
                 // execute the action
-                $output = $actionInstance->execute(...array_values($action->getArguments()));
+                $output = $actionInstance->execute(...$arguments);
                 // if the action succeeds, mark the action as successful
                 $action->setStatus(ActionStatus::SUCCEEDED)->setOutput($output);
                 //and stop the execution
                 return;
-            } catch (PhpException $exception) {
+            } catch (Exception $exception) {
                 // if the action fails, try again
                 if($attempt < $maxAttempts) {
                     continue;
@@ -90,6 +123,22 @@ class ChainableActionProxy extends ActionProxy
         }
 
         return $actionInstance->skip();
+    }
+
+    private function resolveArguments(Action $action, ActionChain $actionChain): array
+    {
+        $arguments = array_values($action->getArguments());
+
+        foreach ($arguments as $index => $argument) {
+            if ($argument instanceof ActionOutput) {
+                $actionId = $argument->getActionId();
+                $actions = $actionChain->getActions();
+                $action = $actions->first(fn(Action $action) => $action->getId() === $actionId);
+                $arguments[$index] = $action !== null ? $action->getOutput() : null;
+            }
+        }
+
+        return $arguments;
     }
 
     private function triggerCallbacks(?Action $action, ActionChain $actionChain): void

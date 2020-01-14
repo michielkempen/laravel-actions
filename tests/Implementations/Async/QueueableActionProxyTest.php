@@ -3,7 +3,6 @@
 namespace MichielKempen\LaravelActions\Tests\Implementations\Async;
 
 use Illuminate\Support\Collection;
-use MichielKempen\LaravelActions\Action;
 use MichielKempen\LaravelActions\Implementations\Async\QueueableActionProxy;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\ReturnTheParametersAsOutputAction;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\SkipAction;

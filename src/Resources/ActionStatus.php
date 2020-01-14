@@ -1,6 +1,6 @@
 <?php
 
-namespace MichielKempen\LaravelActions;
+namespace MichielKempen\LaravelActions\Resources;
 
 use MichielKempen\LaravelEnum\Enum;
 

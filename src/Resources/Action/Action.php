@@ -1,25 +1,28 @@
 <?php
 
-namespace MichielKempen\LaravelActions;
+namespace MichielKempen\LaravelActions\Resources\Action;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use MichielKempen\LaravelActions\Resources\ActionStatus;
 
 class Action implements ActionContract
 {
     private string $class;
     private array $arguments;
     private string $name;
+    private ?string $uuid;
     private string $status;
     private $output;
     private ?Carbon $startedAt;
     private ?Carbon $finishedAt;
 
-    public function __construct(object $action, array $arguments = [])
+    public function __construct(object $action, array $arguments, ?string $name, ?string $uuid = null)
     {
         $this->class = get_class($action);
         $this->arguments = $arguments;
-        $this->name = $this->parseName($action);
+        $this->name = $name === null ? $this->parseName($action) : $name;
+        $this->uuid = $uuid;
         $this->status = ActionStatus::PENDING;
         $this->output = null;
         $this->startedAt = null;
@@ -57,6 +60,11 @@ class Action implements ActionContract
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getId(): ?string
+    {
+        return $this->uuid;
     }
 
     public function setStatus(string $status): ActionContract

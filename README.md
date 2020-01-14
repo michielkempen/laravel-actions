@@ -22,7 +22,8 @@ You can publish the migration with:
 php artisan vendor:publish --provider="MichielKempen\LaravelActions\ActionsServiceProvider" --tag="migrations"
 ```
 
-After the migration has been published you can create the `queued_actions` by running the migrations:
+After the migration has been published you can create the `queued_action_chains` and `queued_actions` database tables
+by running:
 
 ```bash
 php artisan migrate
@@ -30,47 +31,34 @@ php artisan migrate
 
 ## Usage
 
+Synchronous action chain execution:
+
 ```php
-<?php
+$uuid = (string) Uuid::generate(4);
 
-use MichielKempen\LaravelActions\Implementations\Async\QueueableAction;
-
-class MyAction
-{
-    use QueueableAction;
-
-    public function __construct()
-    {
-        $this->otherAction = app(OtherAction::class);
-        $this->service = app(ServiceFromTheContainer::class);
-    }
-
-    public function execute(MyModel $model, RequestData $requestData)
-    {
-        // The business logic goes here, this can be executed in an async job.
-    }
-}
+(new QueueableActionChain)
+    ->addAction(ReturnTheFirstParameterAsOutputAction::class, ['hello', 'world'], "Greetings!", $uuid)
+    ->addAction(ReturnTheParametersAsOutputAction::class, ['john', 'doe'])
+    ->addAction(ReturnTheParametersAsOutputAction::class, [new ActionOutput($uuid), 'joe'], "Test action output")
+    ->withCallback(ReturnStatusCallback::class)
+    ->execute();
 ```
 
-```php
-<?php
+Asynchronous action chain execution:
 
-class MyController
-{
-    public function store(MyRequest $request, MyModel $model, MyAction $action)
-    {
-        $requestData = RequestData::fromRequest($request);
-    
-        // Execute the action right now
-        $action->execute($model, $requestData);
-        
-        // Execute the action on the queue
-        $action->onQueue()->execute($model, $requestData);
-        
-        // Execute the action on the queue and track its state
-        $action->queue()->onModel($model)->execute($model, $requestData);
-    }
-}
+```php
+$uuid = (string) Uuid::generate(4);
+$model = TestModel::create();
+
+(new QueueableActionChain)
+    ->queue()
+    ->onModel($model)
+    ->withName("Test action")
+    ->addAction(ReturnTheFirstParameterAsOutputAction::class, ['hello', 'world'], "Greetings!", $uuid)
+    ->addAction(ReturnTheParametersAsOutputAction::class, ['john', 'doe'])
+    ->addAction(ReturnTheParametersAsOutputAction::class, [new ActionOutput($uuid), 'joe'], "Test action output")
+    ->withCallback(ReturnStatusCallback::class)
+    ->execute();
 ```
 
 ## Security

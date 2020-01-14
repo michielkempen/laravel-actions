@@ -1,10 +1,10 @@
 <?php
 
-namespace MichielKempen\LaravelActions\Database;
+namespace MichielKempen\LaravelActions\Resources\Action;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use MichielKempen\LaravelActions\ActionContract;
+use MichielKempen\LaravelActions\Resources\ActionChain\QueuedActionChain;
 use MichielKempen\LaravelUuidModel\UuidModel;
 
 class QueuedAction extends UuidModel implements ActionContract
@@ -18,7 +18,7 @@ class QueuedAction extends UuidModel implements ActionContract
 
     protected $casts = [
         'output' => 'json',
-        'arguments' => 'array',
+        'arguments' => 'json',
         'callbacks' => 'array',
     ];
 

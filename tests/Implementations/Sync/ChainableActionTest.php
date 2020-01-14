@@ -3,10 +3,9 @@
 namespace MichielKempen\LaravelActions\Tests\Implementations\Sync;
 
 use Illuminate\Support\Collection;
-use MichielKempen\LaravelActions\Action;
-use MichielKempen\LaravelActions\ActionChainReport;
-use MichielKempen\LaravelActions\ActionChain;
-use MichielKempen\LaravelActions\ActionStatus;
+use MichielKempen\LaravelActions\Resources\Action\Action;
+use MichielKempen\LaravelActions\Resources\ActionChain\ActionChain;
+use MichielKempen\LaravelActions\Resources\ActionStatus;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\ReturnTheParametersAsOutputAction;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\SkipAction;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\ThrowAnExceptionAction;

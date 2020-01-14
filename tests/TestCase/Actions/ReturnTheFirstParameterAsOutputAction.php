@@ -4,17 +4,17 @@ namespace MichielKempen\LaravelActions\Tests\TestCase\Actions;
 
 use MichielKempen\LaravelActions\QueueableAction;
 
-class ReturnTheParametersAsOutputAction
+class ReturnTheFirstParameterAsOutputAction
 {
     use QueueableAction;
 
     /**
      * @param string $parameterA
      * @param string $parameterB
-     * @return array
+     * @return string
      */
-    public function execute(string $parameterA, string $parameterB): array
+    public function execute(string $parameterA, string $parameterB): string
     {
-        return [$parameterA, $parameterB];
+        return $parameterA;
     }
 }

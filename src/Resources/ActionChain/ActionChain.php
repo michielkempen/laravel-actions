@@ -1,8 +1,11 @@
 <?php
 
-namespace MichielKempen\LaravelActions;
+namespace MichielKempen\LaravelActions\Resources\ActionChain;
 
 use Illuminate\Support\Collection;
+use MichielKempen\LaravelActions\Resources\Action\Action;
+use MichielKempen\LaravelActions\Resources\Action\ActionContract;
+use MichielKempen\LaravelActions\Resources\ActionStatus;
 
 class ActionChain implements ActionChainContract
 {

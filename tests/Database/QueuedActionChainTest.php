@@ -3,8 +3,8 @@
 namespace MichielKempen\LaravelActions\Tests\Database;
 
 use Illuminate\Support\Collection;
-use MichielKempen\LaravelActions\Database\QueuedAction;
-use MichielKempen\LaravelActions\Database\QueuedActionChain;
+use MichielKempen\LaravelActions\Resources\Action\QueuedAction;
+use MichielKempen\LaravelActions\Resources\ActionChain\QueuedActionChain;
 use MichielKempen\LaravelActions\Tests\TestCase\TestCase;
 
 class QueuedActionChainTest extends TestCase

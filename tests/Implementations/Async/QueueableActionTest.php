@@ -4,13 +4,10 @@ namespace MichielKempen\LaravelActions\Tests\Implementations\Async;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Queue;
-use MichielKempen\LaravelActions\Action;
-use MichielKempen\LaravelActions\ActionChainReport;
-use MichielKempen\LaravelActions\ActionChain;
-use MichielKempen\LaravelActions\ActionStatus;
-use MichielKempen\LaravelActions\Database\QueuedAction;
-use MichielKempen\LaravelActions\Database\QueuedActionChain;
-use MichielKempen\LaravelActions\Implementations\Async\QueuedActionJob;
+use MichielKempen\LaravelActions\Resources\Action\QueuedAction;
+use MichielKempen\LaravelActions\Resources\ActionChain\QueuedActionChain;
+use MichielKempen\LaravelActions\Resources\ActionStatus;
+use MichielKempen\LaravelActions\Resources\QueuedActionJob;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\ReturnTheParametersAsOutputAction;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\SkipAction;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\ThrowAnExceptionAction;

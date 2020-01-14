@@ -1,6 +1,8 @@
 <?php
 
-namespace MichielKempen\LaravelActions;
+namespace MichielKempen\LaravelActions\Resources;
+
+use MichielKempen\LaravelActions\InteractsWithActionChainReport;
 
 class ActionChainCallback
 {
@@ -15,8 +17,18 @@ class ActionChainCallback
 
     public function trigger(ActionChainReport $actionChainReport): void
     {
-        $callbackInstance = resolve($this->class, $this->arguments);
-        $callbackInstance->execute($actionChainReport);
+        $callbackInstance = resolve($this->class);
+
+        if($this->callbackInteractsWithActionChainReport($callbackInstance)) {
+            $callbackInstance->setActionChainReport($actionChainReport);
+        }
+
+        $callbackInstance->execute(...array_values($this->arguments));
+    }
+
+    private function callbackInteractsWithActionChainReport(object $callbackInstance): bool
+    {
+        return in_array(InteractsWithActionChainReport::class, class_uses($callbackInstance));
     }
 
     public function serialize(): array

@@ -3,7 +3,7 @@
 namespace MichielKempen\LaravelActions\Tests\Feature;
 
 use Illuminate\Support\Facades\Queue;
-use MichielKempen\LaravelActions\Implementations\Async\QueuedActionJob;
+use MichielKempen\LaravelActions\Resources\QueuedActionJob;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\ComplexAction;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\DataObject;
 use MichielKempen\LaravelActions\Tests\TestCase\SimpleAction;

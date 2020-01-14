@@ -3,10 +3,10 @@
 namespace MichielKempen\LaravelActions\Tests\Database;
 
 use Illuminate\Support\Carbon;
-use MichielKempen\LaravelActions\Action;
-use MichielKempen\LaravelActions\ActionStatus;
-use MichielKempen\LaravelActions\Database\QueuedAction;
-use MichielKempen\LaravelActions\Database\QueuedActionChain;
+use MichielKempen\LaravelActions\Resources\Action\Action;
+use MichielKempen\LaravelActions\Resources\Action\QueuedAction;
+use MichielKempen\LaravelActions\Resources\ActionChain\QueuedActionChain;
+use MichielKempen\LaravelActions\Resources\ActionStatus;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\ReturnTheParametersAsOutputAction;
 use MichielKempen\LaravelActions\Tests\TestCase\SimpleAction;
 use MichielKempen\LaravelActions\Tests\TestCase\TestCase;

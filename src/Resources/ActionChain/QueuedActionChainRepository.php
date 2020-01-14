@@ -1,10 +1,10 @@
 <?php
 
-namespace MichielKempen\LaravelActions\Database;
+namespace MichielKempen\LaravelActions\Resources\ActionChain;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use MichielKempen\LaravelActions\ActionChainCallback;
+use MichielKempen\LaravelActions\Resources\ActionChainCallback;
 
 class QueuedActionChainRepository
 {

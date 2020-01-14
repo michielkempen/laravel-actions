@@ -2,6 +2,8 @@
 
 namespace MichielKempen\LaravelActions;
 
+use MichielKempen\LaravelActions\Resources\ActionChain\ActionChainContract;
+
 trait InteractsWithActionChain
 {
     protected ActionChainContract $actionChain;

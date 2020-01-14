@@ -1,17 +1,14 @@
 <?php
 
-namespace MichielKempen\LaravelActions\Implementations\Async;
+namespace MichielKempen\LaravelActions\Resources;
 
 use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use MichielKempen\LaravelActions\ActionChainReport;
-use MichielKempen\LaravelActions\ActionStatus;
-use MichielKempen\LaravelActions\ActionChainCallback;
-use MichielKempen\LaravelActions\Database\QueuedAction;
-use MichielKempen\LaravelActions\Database\QueuedActionRepository;
 use MichielKempen\LaravelActions\InteractsWithActionChain;
+use MichielKempen\LaravelActions\Resources\Action\QueuedAction;
+use MichielKempen\LaravelActions\Resources\Action\QueuedActionRepository;
 use Throwable;
 
 class QueuedActionJob implements ShouldQueue
@@ -79,6 +76,8 @@ class QueuedActionJob implements ShouldQueue
             return;
         }
 
+        $arguments = $this->resolveArguments();
+
         // get the maximum number of attempts specified by the user in the action class
         // if no number is specified, default to the number specified in the config file
         $maxAttempts = $actionInstance->attempts ?? config('actions.default_attempts');
@@ -86,7 +85,7 @@ class QueuedActionJob implements ShouldQueue
         for($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
             try {
                 // execute the action
-                $output = $actionInstance->execute(...array_values($this->queuedAction->getArguments()));
+                $output = $actionInstance->execute(...$arguments);
                 // if the action succeeds, mark the action as successful
                 $this->queuedAction->setStatus(ActionStatus::SUCCEEDED)->setOutput($output);
                 //and stop the execution
@@ -116,6 +115,27 @@ class QueuedActionJob implements ShouldQueue
         }
 
         return $actionInstance->skip();
+    }
+
+    private function resolveArguments(): array
+    {
+        $arguments = array_values($this->queuedAction->getArguments());
+
+        foreach ($arguments as $index => $argument) {
+            if ($this->argumentIsAnUnresolvedActionOutput($argument)) {
+                $actionId = $argument['action_id'];
+                $actions = $this->queuedAction->getChain()->getActions();
+                $action = $actions->first(fn(QueuedAction $queuedAction) => $queuedAction->getId() === $actionId);
+                $arguments[$index] = $action !== null ? $action->getOutput() : null;
+            }
+        }
+
+        return $arguments;
+    }
+
+    private function argumentIsAnUnresolvedActionOutput($argument): bool
+    {
+        return is_array($argument) && $argument['type'] == 'action_output';
     }
 
     public function failed(Exception $exception): void

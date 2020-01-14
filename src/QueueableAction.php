@@ -1,6 +1,8 @@
 <?php
 
-namespace MichielKempen\LaravelActions\Implementations\Async;
+namespace MichielKempen\LaravelActions;
+
+use MichielKempen\LaravelActions\Resources\QueueableActionProxy;
 
 trait QueueableAction
 {

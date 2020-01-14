@@ -1,8 +1,9 @@
 <?php
 
-namespace MichielKempen\LaravelActions;
+namespace MichielKempen\LaravelActions\Resources\ActionChain;
 
 use Illuminate\Support\Collection;
+use MichielKempen\LaravelActions\Resources\Action\ActionContract;
 
 interface ActionChainContract
 {

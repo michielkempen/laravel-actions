@@ -2,9 +2,9 @@
 
 namespace MichielKempen\LaravelActions\Tests;
 
-use MichielKempen\LaravelActions\Action;
-use MichielKempen\LaravelActions\ActionChain;
-use MichielKempen\LaravelActions\ActionStatus;
+use MichielKempen\LaravelActions\Resources\Action\Action;
+use MichielKempen\LaravelActions\Resources\ActionChain\ActionChain;
+use MichielKempen\LaravelActions\Resources\ActionStatus;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\ReturnTheParametersAsOutputAction;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\SkipAction;
 use MichielKempen\LaravelActions\Tests\TestCase\Actions\ThrowAnExceptionAction;

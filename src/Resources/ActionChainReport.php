@@ -1,8 +1,10 @@
 <?php
 
-namespace MichielKempen\LaravelActions;
+namespace MichielKempen\LaravelActions\Resources;
 
-use MichielKempen\LaravelActions\Database\QueuedActionChain;
+use MichielKempen\LaravelActions\Resources\Action\ActionContract;
+use MichielKempen\LaravelActions\Resources\ActionChain\ActionChainContract;
+use MichielKempen\LaravelActions\Resources\ActionChain\QueuedActionChain;
 
 class ActionChainReport
 {

@@ -3,13 +3,12 @@
 namespace MichielKempen\LaravelActions\Tests\TestCase\Actions;
 
 use Exception as PhpException;
-use MichielKempen\LaravelActions\Implementations\Async\QueueableAction;
-use MichielKempen\LaravelActions\Implementations\Sync\ChainableAction;
+use MichielKempen\LaravelActions\QueueableAction;
 use MichielKempen\LaravelActions\Tests\TestCase\TestCase;
 
 class ComplexAction
 {
-    use QueueableAction, ChainableAction;
+    use QueueableAction;
 
     public $queue = 'default';
 

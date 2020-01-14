@@ -3,8 +3,8 @@
 namespace MichielKempen\LaravelActions\Tests\Database;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use MichielKempen\LaravelActions\Database\QueuedActionChain;
-use MichielKempen\LaravelActions\Database\QueuedActionChainRepository;
+use MichielKempen\LaravelActions\Resources\ActionChain\QueuedActionChain;
+use MichielKempen\LaravelActions\Resources\ActionChain\QueuedActionChainRepository;
 use MichielKempen\LaravelActions\Tests\TestCase\TestCase;
 
 class QueuedActionChainRepositoryTest extends TestCase

@@ -2,13 +2,12 @@
 
 namespace MichielKempen\LaravelActions\Tests\TestCase\Actions;
 
-use MichielKempen\LaravelActions\ActionChainContract;
-use MichielKempen\LaravelActions\Implementations\Async\QueueableAction;
-use MichielKempen\LaravelActions\Implementations\Sync\ChainableAction;
+use MichielKempen\LaravelActions\QueueableAction;
+use MichielKempen\LaravelActions\Resources\ActionChain\ActionChainContract;
 
 class SkipAction
 {
-    use QueueableAction, ChainableAction;
+    use QueueableAction;
 
     /**
      * @param ActionChainContract $actionChain

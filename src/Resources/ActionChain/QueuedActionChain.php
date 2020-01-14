@@ -1,14 +1,14 @@
 <?php
 
-namespace MichielKempen\LaravelActions\Database;
+namespace MichielKempen\LaravelActions\Resources\ActionChain;
 
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use MichielKempen\LaravelActions\ActionChainCallback;
-use MichielKempen\LaravelActions\ActionChainContract;
-use MichielKempen\LaravelActions\ActionContract;
-use MichielKempen\LaravelActions\ActionStatus;
+use MichielKempen\LaravelActions\Resources\Action\ActionContract;
+use MichielKempen\LaravelActions\Resources\Action\QueuedAction;
+use MichielKempen\LaravelActions\Resources\ActionChainCallback;
+use MichielKempen\LaravelActions\Resources\ActionStatus;
 use MichielKempen\LaravelUuidModel\UuidModel;
 
 class QueuedActionChain extends UuidModel implements ActionChainContract
