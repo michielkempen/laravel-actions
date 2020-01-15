@@ -2,6 +2,9 @@
 
 namespace MichielKempen\LaravelActions\Resources\Action;
 
+use Illuminate\Support\Collection;
+use MichielKempen\LaravelActions\Resources\ActionStatus;
+
 class QueuedActionRepository
 {
     private QueuedAction $model;
@@ -9,6 +12,14 @@ class QueuedActionRepository
     public function __construct()
     {
         $this->model = app(QueuedAction::class);
+    }
+
+    public function getPendingQueuedActionsForChain(string $queuedActionChainId): Collection
+    {
+        return $this->model
+            ->where('chain_id', $queuedActionChainId)
+            ->where('status', ActionStatus::PENDING)
+            ->get();
     }
 
     public function getQueuedActionOrFail(string $queuedActionId): QueuedAction
