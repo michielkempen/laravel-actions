@@ -35,7 +35,7 @@ class CreateQueuedActionsTable extends Migration
             $table->integer('order');
             // action
             $table->string('class');
-            $table->string('arguments');
+            $table->text('arguments');
             $table->string('name');
             $table->string('status', 16);
             $table->text('output')->nullable();

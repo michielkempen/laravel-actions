@@ -135,7 +135,15 @@ class QueuedActionJob implements ShouldQueue
 
     private function argumentIsAnUnresolvedActionOutput($argument): bool
     {
-        return is_array($argument) && $argument['type'] == 'action_output';
+        if(! is_array($argument)) {
+            return false;
+        }
+
+        if(! array_key_exists('type', $argument)) {
+            return false;
+        }
+
+        return $argument['type'] == 'action_output';
     }
 
     public function failed(Exception $exception): void
