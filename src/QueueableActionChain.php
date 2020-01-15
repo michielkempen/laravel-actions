@@ -4,6 +4,7 @@ namespace MichielKempen\LaravelActions;
 
 use Exception;
 use Illuminate\Support\Collection;
+use MichielKempen\LaravelActions\Exceptions\EmptyActionChainException;
 use MichielKempen\LaravelActions\Resources\Action\Action;
 use MichielKempen\LaravelActions\Resources\ActionChain\ActionChain;
 use MichielKempen\LaravelActions\Resources\ActionChainCallback;
@@ -45,7 +46,7 @@ class QueueableActionChain
     public function execute()
     {
         if($this->actions->isEmpty()) {
-            throw new Exception("Cannot execute empty action chain.", 500);
+            throw new EmptyActionChainException;
         }
 
         $actionChain = $this->createActionChain();

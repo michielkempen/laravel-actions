@@ -6,7 +6,7 @@ use MichielKempen\LaravelActions\Resources\Action\QueuedAction;
 use MichielKempen\LaravelActions\Resources\Action\QueuedActionRepository;
 use MichielKempen\LaravelActions\Resources\ActionStatus;
 
-class CancelActionChain
+class CancelQueuedActionChain
 {
     private QueuedActionRepository $queuedActionRepository;
 

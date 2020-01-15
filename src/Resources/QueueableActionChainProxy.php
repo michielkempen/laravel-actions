@@ -2,9 +2,9 @@
 
 namespace MichielKempen\LaravelActions\Resources;
 
-use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use MichielKempen\LaravelActions\Exceptions\EmptyActionChainException;
 use MichielKempen\LaravelActions\Resources\Action\Action;
 use MichielKempen\LaravelActions\Resources\Action\QueuedAction;
 use MichielKempen\LaravelActions\Resources\Action\QueuedActionRepository;
@@ -63,7 +63,7 @@ class QueueableActionChainProxy
     public function execute(): string
     {
         if($this->actions->isEmpty()) {
-            throw new Exception("Cannot execute empty action chain.", 500);
+            throw new EmptyActionChainException;
         }
 
         $queuedActionChain = $this->createActionChain();
