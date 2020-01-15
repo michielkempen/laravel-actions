@@ -143,7 +143,7 @@ class QueuedActionJob implements ShouldQueue
             return false;
         }
 
-        return $argument['type'] == 'action_output';
+        return $argument['type'] === 'action_output';
     }
 
     public function failed(Exception $exception): void
