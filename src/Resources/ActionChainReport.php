@@ -41,4 +41,14 @@ class ActionChainReport
     {
         return is_a($this->actionChain, QueuedActionChain::class);
     }
+
+    public function isJustStarted(): bool
+    {
+        return ! $this->hasAction();
+    }
+
+    public function isJustFinished(): bool
+    {
+        return $this->hasActionChain() && $this->getActionChain()->isFinished();
+    }
 }
