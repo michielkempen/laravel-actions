@@ -122,8 +122,8 @@ class QueuedActionJob implements ShouldQueue
         $arguments = array_values($this->queuedAction->getArguments());
 
         foreach ($arguments as $index => $argument) {
-            if ($this->argumentIsAnUnresolvedActionOutput($argument)) {
-                $actionId = $argument['action_id'];
+            if ($argument instanceof ActionOutput) {
+                $actionId = $argument->getActionId();
                 $actions = $this->queuedAction->getChain()->getActions();
                 $action = $actions->first(fn(QueuedAction $queuedAction) => $queuedAction->getId() === $actionId);
                 $arguments[$index] = $action !== null ? $action->getOutput() : null;
@@ -131,19 +131,6 @@ class QueuedActionJob implements ShouldQueue
         }
 
         return $arguments;
-    }
-
-    private function argumentIsAnUnresolvedActionOutput($argument): bool
-    {
-        if(! is_array($argument)) {
-            return false;
-        }
-
-        if(! array_key_exists('type', $argument)) {
-            return false;
-        }
-
-        return $argument['type'] === 'action_output';
     }
 
     public function failed(Exception $exception): void

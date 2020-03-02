@@ -5,6 +5,7 @@ namespace MichielKempen\LaravelActions\Resources\Action;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use MichielKempen\LaravelActions\Resources\ActionChain\QueuedActionChain;
+use MichielKempen\LaravelActions\Resources\ArgumentSerializer;
 use MichielKempen\LaravelUuidModel\UuidModel;
 
 class QueuedAction extends UuidModel implements ActionContract
@@ -113,5 +114,15 @@ class QueuedAction extends UuidModel implements ActionContract
         }
 
         return $this->finished_at->longAbsoluteDiffForHumans($this->started_at);
+    }
+
+    public function setArgumentsAttribute($arguments): void
+    {
+        $this->attributes['arguments'] = ArgumentSerializer::serialize($arguments);
+    }
+
+    public function getArgumentsAttribute($arguments): array
+    {
+        return ArgumentSerializer::deserialize($arguments);
     }
 }

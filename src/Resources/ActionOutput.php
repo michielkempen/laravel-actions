@@ -2,9 +2,9 @@
 
 namespace MichielKempen\LaravelActions\Resources;
 
-use JsonSerializable;
+use MichielKempen\LaravelActions\QueueableObject;
 
-class ActionOutput implements JsonSerializable
+class ActionOutput implements QueueableObject
 {
     public string $actionId;
 
@@ -18,11 +18,15 @@ class ActionOutput implements JsonSerializable
         return $this->actionId;
     }
 
-    public function jsonSerialize()
+    public function serialize(): array
     {
         return [
-            'type' => 'action_output',
-            'action_id' => $this->actionId,
+            'actionId' => $this->actionId,
         ];
+    }
+
+    public static function deserialize(array $attributes): self
+    {
+        return new static($attributes['actionId']);
     }
 }
