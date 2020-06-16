@@ -2,7 +2,6 @@
 
 namespace MichielKempen\LaravelActions\Resources;
 
-use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -133,7 +132,7 @@ class QueuedActionJob implements ShouldQueue
         return $arguments;
     }
 
-    public function failed(Exception $exception): void
+    public function failed(Throwable $exception): void
     {
         $this->queuedAction = $this->queuedActionRepository->getQueuedActionOrFail($this->queuedActionId);
 

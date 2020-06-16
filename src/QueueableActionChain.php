@@ -2,7 +2,6 @@
 
 namespace MichielKempen\LaravelActions;
 
-use Exception;
 use Illuminate\Support\Collection;
 use MichielKempen\LaravelActions\Exceptions\EmptyActionChainException;
 use MichielKempen\LaravelActions\Resources\Action\Action;
@@ -12,6 +11,7 @@ use MichielKempen\LaravelActions\Resources\ActionChainReport;
 use MichielKempen\LaravelActions\Resources\ActionOutput;
 use MichielKempen\LaravelActions\Resources\ActionStatus;
 use MichielKempen\LaravelActions\Resources\QueueableActionChainProxy;
+use Throwable;
 
 class QueueableActionChain
 {
@@ -99,7 +99,7 @@ class QueueableActionChain
                 $action->setStatus(ActionStatus::SUCCEEDED)->setOutput($output);
                 //and stop the execution
                 return;
-            } catch (Exception $exception) {
+            } catch (Throwable $exception) {
                 // if the action fails, try again
                 if($attempt < $maxAttempts) {
                     continue;
