@@ -3,6 +3,11 @@
 return [
 
     /**
+     * The name of the queue connection that is used by the application.
+     */
+    'default_connection' => 'redis',
+
+    /**
      * The name of the queue the queued actions should be sent to.
      */
     'default_queue' => 'default',

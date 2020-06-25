@@ -30,21 +30,17 @@ class QueuedActionJob implements ShouldQueue
         // Tries: Since we implement our own retry logic, we do not want Laravel to retry our failed jobs.
         $this->tries = 1;
 
+        // Connection
+        $this->connection = $actionInstance->connection ?? config('actions.default_connection');
+
         // Queue
         $this->queue = $actionInstance->queue ?? config('actions.default_queue');
 
         // Timeout
         $this->timeout = $actionInstance->timeout ?? config('actions.default_timeout');
 
-        // Connection
-        if(property_exists($actionInstance, 'connection')) {
-            $this->connection = $actionInstance->connection;
-        }
-
         // Delay
-        if(property_exists($actionInstance, 'delay')) {
-            $this->delay = $actionInstance->delay;
-        }
+        $this->delay = $actionInstance->delay ?? 0;
     }
 
     public function handle(): void
