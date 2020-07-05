@@ -27,18 +27,16 @@ class QueuedActionJob implements ShouldQueue
 
     private function resolveQueueableProperties(object $actionInstance): void
     {
-        // Tries: Since we implement our own retry logic, we do not want Laravel to retry our failed jobs.
+        // Since we implement our own retry logic, we do not want Laravel to retry our failed jobs.
         $this->tries = 1;
-
         // Connection
         $this->connection = $actionInstance->connection ?? config('actions.default_connection');
-
         // Queue
         $this->queue = $actionInstance->queue ?? config('actions.default_queue');
-
-        // Timeout
-        $this->timeout = $actionInstance->timeout ?? config('actions.default_timeout');
-
+        // The timeout is specified for a single action so we have to multiply it with the maximum number of executions
+        // to calculate the timeout of the entire job.
+        $maxAttempts = $actionInstance->attempts ?? config('actions.default_attempts');
+        $this->timeout = ($actionInstance->timeout ?? config('actions.default_timeout')) * $maxAttempts;
         // Delay
         $this->delay = $actionInstance->delay ?? 0;
     }
