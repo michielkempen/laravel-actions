@@ -80,7 +80,11 @@ class QueuedActionJob implements ShouldQueue
             $pool = Pool::create()->timeout($timeout);
 
             $pool
-                ->add(fn () => $actionInstance->execute(...$arguments))
+                ->add(function() use ($actionInstance, $arguments) {
+                    require __DIR__.'/../../../../autoload.php';
+                    require_once __DIR__.'/../../../../../bootstrap/app.php';
+                    $actionInstance->execute(...$arguments);
+                })
                 ->then(function ($output) use (&$success) {
                     $this->queuedAction->setStatus(ActionStatus::SUCCEEDED)->setOutput($output);
                     $success = true;
