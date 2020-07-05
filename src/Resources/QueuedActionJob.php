@@ -5,9 +5,11 @@ namespace MichielKempen\LaravelActions\Resources;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use MichielKempen\LaravelActions\Exceptions\ActionTimeoutException;
 use MichielKempen\LaravelActions\InteractsWithActionChain;
 use MichielKempen\LaravelActions\Resources\Action\QueuedAction;
 use MichielKempen\LaravelActions\Resources\Action\QueuedActionRepository;
+use Spatie\Async\Pool;
 use Throwable;
 
 class QueuedActionJob implements ShouldQueue
@@ -70,29 +72,34 @@ class QueuedActionJob implements ShouldQueue
         }
 
         $arguments = $this->resolveArguments();
-
-        // get the maximum number of attempts specified by the user in the action class
-        // if no number is specified, default to the number specified in the config file
         $maxAttempts = $actionInstance->attempts ?? config('actions.default_attempts');
+        $timeout = $actionInstance->timeout ?? config('actions.default_timeout');
+        $success = false;
 
-        for($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
-            try {
-                // execute the action
-                $output = $actionInstance->execute(...$arguments);
-                // if the action succeeds, mark the action as successful
-                $this->queuedAction->setStatus(ActionStatus::SUCCEEDED)->setOutput($output);
-                //and stop the execution
-                return;
-            } catch (Throwable $exception) {
-                // if the action fails, try again
-                if($attempt < $maxAttempts) {
-                    continue;
-                }
-                // if there are no attempts left, mark the action as failed
-                $this->queuedAction->setStatus(ActionStatus::FAILED)->setOutput($exception->getMessage());
-                // and stop the execution
-                return;
-            }
+        for($attempt = 1; $attempt <= $maxAttempts && !$success; $attempt++) {
+            $pool = Pool::create()->timeout($timeout);
+
+            $pool
+                ->add(fn () => $actionInstance->execute(...$arguments))
+                ->then(function ($output) use (&$success) {
+                    $this->queuedAction->setStatus(ActionStatus::SUCCEEDED)->setOutput($output);
+                    $success = true;
+                })
+                ->catch(function (Throwable $exception) use ($attempt, $maxAttempts) {
+                    if($attempt == $maxAttempts) {
+                        $this->queuedAction->setStatus(ActionStatus::FAILED)->setOutput($exception->getMessage());
+                    }
+                    $this->cleanupActionInstance($exception);
+                })
+                ->timeout(function () use ($attempt, $maxAttempts) {
+                    $exception = new ActionTimeoutException;
+                    if($attempt == $maxAttempts) {
+                        $this->queuedAction->setStatus(ActionStatus::FAILED)->setOutput($exception->getMessage());
+                    }
+                    $this->cleanupActionInstance($exception);
+                });
+
+            $pool->wait();
         }
     }
 
@@ -129,20 +136,19 @@ class QueuedActionJob implements ShouldQueue
     public function failed(Throwable $exception): void
     {
         $this->queuedAction = $this->queuedActionRepository->getQueuedActionOrFail($this->queuedActionId);
-
-        $this->queuedAction
-            ->setFinishedAt(now())
-            ->setStatus(ActionStatus::FAILED)
-            ->setOutput($exception->getMessage());
-
+        $this->queuedAction->setFinishedAt(now())->setStatus(ActionStatus::FAILED)->setOutput($exception->getMessage());
         $this->queuedAction->save();
 
         $this->triggerCallbacks();
+        $this->cleanupActionInstance($exception);
+    }
 
+    private function cleanupActionInstance(Throwable $exception): void
+    {
         $actionInstance = $this->queuedAction->instantiate();
 
-        if(method_exists($actionInstance, 'failed')) {
-            $actionInstance->failed($exception);
+        if (method_exists($actionInstance, 'failed')) {
+            $actionInstance->failed($exception, ...$this->resolveArguments());
         }
     }
 
