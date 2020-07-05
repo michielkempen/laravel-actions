@@ -18,8 +18,6 @@ class ExecuteActionAsynchronous extends Task
 
     public function configure()
     {
-        require __DIR__.'/../../../../autoload.php';
-
         $app = require_once __DIR__.'/../../../../../bootstrap/app.php';
 
         $app->make(Kernel::class)->bootstrap();
