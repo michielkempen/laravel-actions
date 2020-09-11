@@ -6,6 +6,6 @@ class ActionTimeoutException extends \Exception
 {
     public function __construct()
     {
-        parent::__construct("Execution of action timed out.", 500);
+        parent::__construct("Execution of action timed out.");
     }
 }

@@ -17,9 +17,9 @@
     "require": {
         "php": "^7.4",
         "ext-json": "*",
-        "laravel/framework": "^6.0|^7.0",
+        "laravel/framework": "^6.0|^7.0|^8.0",
         "michielkempen/laravel-enum": "^1.0",
-        "michielkempen/laravel-uuid-model": "^1.0",
+        "michielkempen/laravel-uuid-model": "^2.0",
         "spatie/async": "^1.4"
     },
     "require-dev": {
