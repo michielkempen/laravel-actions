@@ -12,6 +12,8 @@ class QueuedAction extends UuidModel implements ActionContract
 {
     public $timestamps = false;
 
+    protected $guarded = [];
+
     protected $dates = [
         'started_at',
         'finished_at',

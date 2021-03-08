@@ -15,6 +15,8 @@ class QueuedActionChain extends UuidModel implements ActionChainContract
 {
     public $timestamps = false;
 
+    protected $guarded = [];
+
     protected $dates = [
         'created_at',
     ];
@@ -117,7 +119,8 @@ class QueuedActionChain extends UuidModel implements ActionChainContract
 
     public function getCallbacks(): Collection
     {
-        return collect($this->callbacks)
-            ->map(fn(array $serialization) => ActionChainCallback::deserialize($serialization));
+        return collect($this->callbacks)->map(function(array $serialization) {
+            return ActionChainCallback::deserialize($serialization);
+        });
     }
 }

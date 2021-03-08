@@ -4,6 +4,7 @@ namespace MichielKempen\LaravelActions\Resources\ActionChain;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use MichielKempen\LaravelActions\Resources\ActionChainCallback;
 use MichielKempen\LaravelActions\Support\ModelFactory;
 
@@ -49,7 +50,7 @@ class QueuedActionChainFactory extends ModelFactory
         return [
             'name' => $this->faker->word,
             'model_id' => $this->faker->uuid,
-            'model_type' => $this->faker->slug(2),
+            'model_type' => Str::slug($this->faker->words(2, true)),
             'callbacks' => $callbacks,
             'created_at' => now()->subMinutes($this->faker->numberBetween(0, 120)),
         ];

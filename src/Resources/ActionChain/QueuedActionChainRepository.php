@@ -15,7 +15,12 @@ class QueuedActionChainRepository
         $this->model = app(QueuedActionChain::class);
     }
 
-    public function getQueuedActionChainOrFail(string $queuedActionChainId): QueuedActionChain
+    public static function new(): self
+    {
+        return app(self::class);
+    }
+
+    public function getQueuedActionChain(string $queuedActionChainId): QueuedActionChain
     {
         return $this->model->findOrFail($queuedActionChainId);
     }

@@ -18,9 +18,12 @@ class ExecuteActionAsynchronous extends Task
 
     public function configure()
     {
-        $app = require_once __DIR__.'/../../../../../bootstrap/app.php';
+        $laravel = __DIR__.'/../../../../../bootstrap/app.php';
 
-        $app->make(Kernel::class)->bootstrap();
+        if(file_exists($laravel)) {
+            $app = require_once $laravel;
+            $app->make(Kernel::class)->bootstrap();
+        }
     }
 
     public function run()

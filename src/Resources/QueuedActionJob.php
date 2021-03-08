@@ -87,14 +87,16 @@ class QueuedActionJob implements ShouldQueue
                 })
                 ->catch(function (Throwable $exception) use ($attempt, $maxAttempts) {
                     if($attempt == $maxAttempts) {
-                        $this->queuedAction->setStatus(ActionStatus::FAILED)->setOutput($exception->getMessage());
+                        $message = explode("\n\n", $exception->getMessage(), 2)[0];
+                        $this->queuedAction->setStatus(ActionStatus::FAILED)->setOutput($message);
                     }
                     $this->cleanupActionInstance($exception);
                 })
                 ->timeout(function () use ($attempt, $maxAttempts) {
                     $exception = new ActionTimeoutException;
                     if($attempt == $maxAttempts) {
-                        $this->queuedAction->setStatus(ActionStatus::FAILED)->setOutput($exception->getMessage());
+                        $message = explode("\n\n", $exception->getMessage(), 2)[0];
+                        $this->queuedAction->setStatus(ActionStatus::FAILED)->setOutput($message);
                     }
                     $this->cleanupActionInstance($exception);
                 });

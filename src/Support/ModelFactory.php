@@ -58,8 +58,6 @@ abstract class ModelFactory
         return $array1;
     }
 
-    public abstract function make();
-
     public abstract function create();
 
     public function createNumber(int $times): Collection
